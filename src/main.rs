@@ -1,12 +1,16 @@
+use std::f64::consts::FRAC_PI_2;
+
 use eframe::egui;
 use egui::{Context, TextureHandle, TextureOptions};
-use egui_extras::{Column, TableBuilder};
 use egui_plot::{Line, Plot, PlotPoints, PlotUi};
+
+mod actions;
+use actions::Action;
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "Path Generator",
+        "Path Editor",
         native_options,
         Box::new(|cc| Box::new(App::new(cc))),
     )
@@ -14,6 +18,7 @@ fn main() {
 }
 
 struct App {
+    actions: Vec<Action>,
     path: Vec<[f64; 2]>,
     img: TextureHandle,
 }
@@ -21,6 +26,13 @@ struct App {
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
+            actions: vec![Action::StartAt {
+                pos: [0.0, -1.7],
+                heading: -FRAC_PI_2,
+            },
+            Action::MoveRel { rel: 1.0, },
+            Action::MoveRelAbs { rel: 1.0 },
+            Action::MoveTo { pos: [0.0, 0.0], }],
             img: Self::load_field_image(&cc.egui_ctx),
             path: vec![[0.0, -1.7], [1.0, -1.7], [1.0, -0.7]],
         }
@@ -53,32 +65,39 @@ impl App {
                         ui.checkbox(&mut true, "metric (TODO)");
                         ui.checkbox(&mut true, "degree (TODO)");
                     });
+                    ui.menu_button("Tools", |ui| {
+                        ui.button("Measure").clicked();
+                        ui.button("Angle (relative)").clicked();
+                        ui.button("Angle (absolute)").clicked();
+                    });
                 });
             });
     }
 
-    fn draw_panel(ctx: &Context, (max_axis, min_len): (usize, f32)) {
+    fn draw_panel(&self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
+        let create_row = |ui: &mut egui::Ui, act: &Action| {
+            ui.label(act.action_name());
+            ui.label(act.action_value());
+            ui.label(act.action_modifiers());
+            ui.end_row();
+        };
+
         let table = |ui: &mut _| {
-            TableBuilder::new(ui)
+            egui::Grid::new("test_grid")
                 .striped(true)
-                .columns(Column::remainder(), 2)
-                .header(20.0, |mut header| {
-                    header.col(|ui| {
-                        ui.heading("Action");
+                .num_columns(4)
+                .show(ui, |ui| {
+                    ui.heading("Action");
+                    ui.heading("Action Data");
+                    ui.heading("Action Type");
+                    // ensure button in on the right hand side
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.button("Add Action").clicked();
                     });
-                    header.col(|ui| {
-                        ui.heading("Action Data");
-                    });
-                })
-                .body(|mut body| {
-                    body.row(30.0, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Start At:");
-                        });
-                        row.col(|ui| {
-                            ui.label("(0.0m, -1.7m) @ 90 deg");
-                        });
-                    });
+                    ui.end_row();
+                    for action in &self.actions {
+                        create_row(ui, action);
+                    }
                 });
         };
 
@@ -140,7 +159,7 @@ impl eframe::App for App {
         };
 
         // draw panel which has the table of robot actions on it
-        Self::draw_panel(ctx, (max_axis, panel_size));
+        self.draw_panel(ctx, (max_axis, panel_size));
 
         // draw plot with the field and path on it
         self.draw_plot(ctx);
