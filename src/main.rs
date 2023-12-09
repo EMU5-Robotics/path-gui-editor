@@ -1,8 +1,8 @@
 use std::f64::consts::FRAC_PI_2;
 
 use eframe::egui;
-use egui::{Context, TextureHandle, TextureOptions};
-use egui_plot::{Line, Plot, PlotPoints, PlotUi};
+use egui::{containers::Window, widgets::Label, Context, TextureHandle, TextureOptions};
+use egui_plot::Plot;
 
 mod actions;
 use actions::Action;
@@ -19,22 +19,25 @@ fn main() {
 
 struct App {
     actions: Vec<Action>,
-    path: Vec<[f64; 2]>,
+    valid_actions: bool,
     img: TextureHandle,
+    help_actions: bool,
 }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            actions: vec![Action::StartAt {
-                pos: [0.0, -1.7],
-                heading: -FRAC_PI_2,
-            },
-            Action::MoveRel { rel: 1.0, },
-            Action::MoveRelAbs { rel: 1.0 },
-            Action::MoveTo { pos: [0.0, 0.0], }],
+            actions: vec![
+                Action::StartAt {
+                    pos: [0.0, -1.7],
+                    heading: -FRAC_PI_2,
+                },
+                Action::MoveRelAbs { rel: 0.2 },
+                Action::MoveRel { rel: 1. },
+            ],
+            valid_actions: true,
             img: Self::load_field_image(&cc.egui_ctx),
-            path: vec![[0.0, -1.7], [1.0, -1.7], [1.0, -0.7]],
+            help_actions: false,
         }
     }
 
@@ -53,7 +56,7 @@ impl App {
         ctx.load_texture("field", img, TextureOptions::default())
     }
 
-    fn draw_menu(ctx: &Context, height: f32) {
+    fn draw_menu(&mut self, ctx: &Context, height: f32) {
         egui::TopBottomPanel::top("menu")
             .exact_height(height)
             .show(ctx, |ui| {
@@ -62,35 +65,43 @@ impl App {
                         ui.button("Save Path As (TODO)").clicked();
                     });
                     ui.menu_button("Units", |ui| {
-                        ui.checkbox(&mut true, "metric (TODO)");
-                        ui.checkbox(&mut true, "degree (TODO)");
+                        ui.checkbox(&mut true, "Use metric (TODO)");
+                        ui.checkbox(&mut true, "Use degrees (TODO)");
                     });
                     ui.menu_button("Tools", |ui| {
-                        ui.button("Measure").clicked();
-                        ui.button("Angle (relative)").clicked();
-                        ui.button("Angle (absolute)").clicked();
+                        ui.button("Measure (TODO)").clicked();
+                        ui.button("Angle (relative) (TODO)").clicked();
+                        ui.button("Angle (absolute) (TODO)").clicked();
                     });
+                    ui.menu_button("Help", |ui| {
+                        if ui.button("Actions").clicked() {
+                            self.help_actions = true;
+                        }
+                    })
                 });
             });
     }
 
     fn draw_panel(&self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
         let create_row = |ui: &mut egui::Ui, act: &Action| {
-            ui.label(act.action_name());
-            ui.label(act.action_value());
-            ui.label(act.action_modifiers());
+            ui.label(act.name());
+            ui.label(act.value());
+            ui.label(act.modifiers());
             ui.end_row();
         };
 
         let table = |ui: &mut _| {
-            egui::Grid::new("test_grid")
+            egui::Grid::new("actions")
                 .striped(true)
-                .num_columns(4)
+                .num_columns(5)
                 .show(ui, |ui| {
                     ui.heading("Action");
                     ui.heading("Action Data");
                     ui.heading("Action Type");
                     // ensure button in on the right hand side
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
+                        ui.heading(if self.valid_actions { "✅" } else { "⚠" });
+                    });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.button("Add Action").clicked();
                     });
@@ -116,12 +127,7 @@ impl App {
         }
     }
 
-    pub fn draw_path(&self, plot_ui: &mut PlotUi) {
-        let points = PlotPoints::new(self.path.clone());
-        plot_ui.line(Line::new(points).width(5.0));
-    }
-
-    pub fn draw_plot(&self, ctx: &Context) {
+    pub fn draw_plot(&mut self, ctx: &Context) {
         let plot = Plot::new("plot")
             .view_aspect(1.0)
             .auto_bounds_x()
@@ -129,23 +135,64 @@ impl App {
 
         let img = egui_plot::PlotImage::new(
             &self.img,
-            egui_plot::PlotPoint::new(0.0, 0.0),
+            egui_plot::PlotPoint::new(0., 0.),
             // 12 ft (width/length of field) to m
             [3.6576; 2],
         );
         egui::CentralPanel::default().show(ctx, |ui| {
             plot.show(ui, |plot_ui| {
                 plot_ui.image(img);
-                self.draw_path(plot_ui);
+                // draw path if it is valid else prevent future drawing
+                // TODO:
+                // 1: add validation on path construction
+                // to reset self.valid_actions
+                if self.valid_actions {
+                    self.valid_actions = Action::render(&self.actions, plot_ui).is_ok();
+                }
             });
         });
+    }
+    pub fn draw_help_actions(&mut self, ctx: &Context) {
+        let create_row = |ui: &mut egui::Ui, act: &Action| {
+            ui.add(Label::new(act.name()).wrap(true));
+            ui.add(Label::new(act.modifiers()).wrap(true));
+            ui.add(Label::new(act.description()).wrap(true));
+            ui.end_row();
+        };
+
+        Window::new("Action Help")
+            .resizable(true)
+            .open(&mut self.help_actions)
+            .show(ctx, |ui| {
+                egui::Grid::new("action help")
+                    .striped(true)
+                    .num_columns(5)
+                    .show(ui, |ui| {
+                        ui.heading("Action");
+                        ui.heading("Action Type");
+                        ui.heading("Action Description");
+                        // ensure button in on the right hand side
+                        ui.end_row();
+                        for action in &[
+                            Action::STARTAT,
+                            Action::MOVEREL,
+                            Action::MOVERELABS,
+                            Action::MOVETO,
+                        ] {
+                            create_row(ui, action);
+                        }
+                    });
+            });
     }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
+        // draw help
+        self.draw_help_actions(ctx);
+
         // top menu is fixed size of 30px tall
-        Self::draw_menu(ctx, 30.);
+        self.draw_menu(ctx, 30.);
 
         // calculate sizing for left/bottom panel
         // which is the remaining size from having the
