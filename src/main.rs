@@ -1,11 +1,15 @@
 use std::f64::consts::FRAC_PI_2;
 
 use eframe::egui;
-use egui::{containers::Window, widgets::Label, Context, TextureHandle, TextureOptions};
+use egui::{Context, TextureHandle, TextureOptions};
 use egui_plot::Plot;
 
 mod actions;
+mod vec;
+mod help;
+
 use actions::Action;
+use help::Help;
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -21,6 +25,7 @@ struct App {
     actions: Vec<Action>,
     valid_actions: bool,
     img: TextureHandle,
+    help: Help,
     help_actions: bool,
 }
 
@@ -37,6 +42,7 @@ impl App {
             ],
             valid_actions: true,
             img: Self::load_field_image(&cc.egui_ctx),
+            help: Default::default(),
             help_actions: false,
         }
     }
@@ -75,7 +81,10 @@ impl App {
                     });
                     ui.menu_button("Help", |ui| {
                         if ui.button("Actions").clicked() {
-                            self.help_actions = true;
+                            self.help.actions = true;
+                        }
+                        if ui.button("Ui (TODO)").clicked() {
+                            self.help.ui = true;
                         }
                     })
                 });
@@ -152,44 +161,12 @@ impl App {
             });
         });
     }
-    pub fn draw_help_actions(&mut self, ctx: &Context) {
-        let create_row = |ui: &mut egui::Ui, act: &Action| {
-            ui.add(Label::new(act.name()).wrap(true));
-            ui.add(Label::new(act.modifiers()).wrap(true));
-            ui.add(Label::new(act.description()).wrap(true));
-            ui.end_row();
-        };
-
-        Window::new("Action Help")
-            .resizable(true)
-            .open(&mut self.help_actions)
-            .show(ctx, |ui| {
-                egui::Grid::new("action help")
-                    .striped(true)
-                    .num_columns(5)
-                    .show(ui, |ui| {
-                        ui.heading("Action");
-                        ui.heading("Action Type");
-                        ui.heading("Action Description");
-                        // ensure button in on the right hand side
-                        ui.end_row();
-                        for action in &[
-                            Action::STARTAT,
-                            Action::MOVEREL,
-                            Action::MOVERELABS,
-                            Action::MOVETO,
-                        ] {
-                            create_row(ui, action);
-                        }
-                    });
-            });
-    }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         // draw help
-        self.draw_help_actions(ctx);
+        self.help.draw(ctx);
 
         // top menu is fixed size of 30px tall
         self.draw_menu(ctx, 30.);

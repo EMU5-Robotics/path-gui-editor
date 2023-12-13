@@ -1,5 +1,6 @@
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
 use std::f64::{consts::PI, NAN};
+use crate::vec::Vec2;
 
 pub enum ActionError {
     NoStartingPos,
@@ -155,13 +156,13 @@ impl Action {
         let mut path = vec![*start_pos];
 
         for action in actions {
-            let idx = pos.len();
-            let before_pos = pos[idx - 1];
+            let idx = path.len();
+            let before_pos = path[idx - 1];
 
             action.modify_position(&mut pos, &mut heading);
 
             // don't draw new point if it's within 1cm
-            if (before_pos - pos[idx]).abs() < 0.01 {
+            if (Vec2(before_pos) - Vec2(pos)).mag() > 0.01 {
                 path.push(pos);
             }
         }
