@@ -1,15 +1,16 @@
-use std::f64::consts::FRAC_PI_2;
-
 use eframe::egui;
-use egui::{Context, TextureHandle, TextureOptions};
-use egui_plot::Plot;
+use egui::Context;
 
 mod actions;
-mod vec;
 mod help;
+mod plot;
+mod tools;
+mod vec;
 
-use actions::Action;
 use help::Help;
+use tools::Tools;
+use plot::Plot;
+use actions::Action;
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -22,44 +23,16 @@ fn main() {
 }
 
 struct App {
-    actions: Vec<Action>,
-    valid_actions: bool,
-    img: TextureHandle,
+    plot: Plot,
     help: Help,
-    help_actions: bool,
 }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            actions: vec![
-                Action::StartAt {
-                    pos: [0.0, -1.7],
-                    heading: -FRAC_PI_2,
-                },
-                Action::MoveRelAbs { rel: 0.2 },
-                Action::MoveRel { rel: 1. },
-            ],
-            valid_actions: true,
-            img: Self::load_field_image(&cc.egui_ctx),
             help: Default::default(),
-            help_actions: false,
+            plot: Plot::new(&cc.egui_ctx),
         }
-    }
-
-    fn load_field_image(ctx: &Context) -> TextureHandle {
-        // load ColorImage according to https://docs.rs/epaint/0.24.1/epaint/image/struct.ColorImage.html
-        let data = image::io::Reader::open("res/field.jpg")
-            .unwrap()
-            .decode()
-            .unwrap();
-
-        let img = egui::ColorImage::from_rgba_unmultiplied(
-            [data.width() as _, data.height() as _],
-            data.to_rgba8().as_flat_samples().as_slice(),
-        );
-
-        ctx.load_texture("field", img, TextureOptions::default())
     }
 
     fn draw_menu(&mut self, ctx: &Context, height: f32) {
@@ -75,9 +48,17 @@ impl App {
                         ui.checkbox(&mut true, "Use degrees (TODO)");
                     });
                     ui.menu_button("Tools", |ui| {
-                        ui.button("Measure (TODO)").clicked();
-                        ui.button("Angle (relative) (TODO)").clicked();
-                        ui.button("Angle (absolute) (TODO)").clicked();
+                        if ui.button("None").clicked() {
+                            self.plot.set_tools(Tools::None);
+                        } else if ui.button("Measure Distance").clicked() {
+                            self.plot.set_tools(Tools::MeasureDistance {
+                                selection: Default::default(),
+                            });
+                        } else if ui.button("Measure Angle").clicked() {
+                            self.plot.set_tools(Tools::MeasureAngle {
+                                selection: Default::default(),
+                            });
+                        }
                     });
                     ui.menu_button("Help", |ui| {
                         if ui.button("Actions").clicked() {
@@ -85,6 +66,9 @@ impl App {
                         }
                         if ui.button("Ui (TODO)").clicked() {
                             self.help.ui = true;
+                        }
+                        if ui.button("About (TODO)").clicked() {
+                            self.help.about = true;
                         }
                     })
                 });
@@ -109,13 +93,14 @@ impl App {
                     ui.heading("Action Type");
                     // ensure button in on the right hand side
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-                        ui.heading(if self.valid_actions { "✅" } else { "⚠" });
+                        ui.heading(if self.plot.actions.is_valid() { "✅" } else { "⚠" });
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.button("Add Action").clicked();
+                        ui.button("Remove Action").clicked();
                     });
                     ui.end_row();
-                    for action in &self.actions {
+                    for action in self.plot.actions.actions() {
                         create_row(ui, action);
                     }
                 });
@@ -134,32 +119,6 @@ impl App {
                     table(ui);
                 });
         }
-    }
-
-    pub fn draw_plot(&mut self, ctx: &Context) {
-        let plot = Plot::new("plot")
-            .view_aspect(1.0)
-            .auto_bounds_x()
-            .auto_bounds_y();
-
-        let img = egui_plot::PlotImage::new(
-            &self.img,
-            egui_plot::PlotPoint::new(0., 0.),
-            // 12 ft (width/length of field) to m
-            [3.6576; 2],
-        );
-        egui::CentralPanel::default().show(ctx, |ui| {
-            plot.show(ui, |plot_ui| {
-                plot_ui.image(img);
-                // draw path if it is valid else prevent future drawing
-                // TODO:
-                // 1: add validation on path construction
-                // to reset self.valid_actions
-                if self.valid_actions {
-                    self.valid_actions = Action::render(&self.actions, plot_ui).is_ok();
-                }
-            });
-        });
     }
 }
 
@@ -185,7 +144,7 @@ impl eframe::App for App {
         // draw panel which has the table of robot actions on it
         self.draw_panel(ctx, (max_axis, panel_size));
 
-        // draw plot with the field and path on it
-        self.draw_plot(ctx);
+        // draw plot with the field and path and tools on it
+        self.plot.draw(ctx);
     }
 }

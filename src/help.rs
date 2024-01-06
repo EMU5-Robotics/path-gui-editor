@@ -7,12 +7,14 @@ use crate::actions::Action;
 pub struct Help {
     pub actions: bool,
     pub ui: bool,
+    pub about: bool,
 }
 
 impl Help {
     pub fn draw(&mut self, ctx: &Context) {
         self.draw_action_help(ctx);
         self.draw_ui_help(ctx);
+        self.draw_about(ctx);
     }
     fn draw_action_help(&mut self, ctx: &Context) {
         let create_row = |ui: &mut egui::Ui, act: &Action| {
@@ -47,8 +49,20 @@ impl Help {
             });
     }
     fn draw_ui_help(&mut self, ctx: &Context) {
-        Window::new("UI Help").resizable(true).open(&mut self.ui).show(ctx, |ui| {
-            ui.label("TODO");
-        });
+        Window::new("UI Help")
+            .resizable(true)
+            .open(&mut self.ui)
+            .show(ctx, |ui| {
+                ui.label("TODO");
+            });
+    }
+    fn draw_about(&mut self, ctx: &Context) {
+        Window::new("About")
+            .resizable(true)
+            .open(&mut self.about)
+            .show(ctx, |ui| {
+                ui.heading("About");
+                ui.label("TODO");
+            });
     }
 }
