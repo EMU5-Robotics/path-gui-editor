@@ -1,6 +1,10 @@
-use eframe::egui::{self, Context, TextureHandle, Rgba, TextureOptions};
-use egui_plot::{Line, Points, PlotPoints, PlotUi};
-use crate::{actions::*, vec::Vec2, tools::Tools};
+use crate::{
+    actions::{Action, Actions},
+    tools::Tools,
+    vec::Vec2,
+};
+use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
+use egui_plot::{Line, PlotPoints, PlotUi, Points};
 
 use std::f64::consts::FRAC_PI_2;
 
@@ -22,7 +26,7 @@ impl Plot {
                 Action::MoveRelAbs { rel: 0.2 },
                 Action::MoveRel { rel: 1. },
             ]),
-            tools: Default::default(),
+            tools: Tools::default(),
         }
     }
     fn load_field_image(ctx: &Context) -> TextureHandle {
@@ -52,7 +56,6 @@ impl Plot {
             [3.6576; 2],
         );
         egui::CentralPanel::default().show(ctx, |ui| {
-
             let plot_resp = plot.show(ui, |plot_ui| {
                 plot_ui.image(img);
                 self.actions.render(plot_ui);
@@ -60,24 +63,21 @@ impl Plot {
                 self.tools.draw(plot_ui);
             });
 
-            self.tools.draw_defered(ui, plot_resp);
+            self.tools.draw_defered(ui, &plot_resp);
         });
     }
     pub fn set_tools(&mut self, tools: Tools) {
         self.tools = tools;
     }
-    pub fn draw_points(ui: &mut PlotUi, points: Vec<Vec2>, color: Rgba) {
-        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0.into()).collect());
-                let points = Points::new(plotpoints)
-                    .filled(true).color(color)
-                    .radius(4.);
-                ui.points(points);
+    pub fn draw_points(ui: &mut PlotUi, points: &[Vec2], color: Rgba) {
+        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0).collect());
+        let points = Points::new(plotpoints).filled(true).color(color).radius(4.);
+        ui.points(points);
     }
 
-    pub fn draw_lines(ui: &mut PlotUi, points: Vec<Vec2>, color: Rgba) {
-        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0.into()).collect());
-                let points = Line::new(plotpoints)
-                    .color(color).width(2.);
-                ui.line(points);
+    pub fn draw_lines(ui: &mut PlotUi, points: &[Vec2], color: Rgba) {
+        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0).collect());
+        let points = Line::new(plotpoints).color(color).width(2.);
+        ui.line(points);
     }
 }

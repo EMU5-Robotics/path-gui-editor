@@ -1,8 +1,7 @@
-use crate::{vec::Vec2, plot::Plot};
+use crate::{plot::Plot, vec::Vec2};
 use eframe::egui::Rgba;
 use egui_plot::PlotUi;
 use std::f64::{consts::PI, NAN};
-
 
 pub struct Actions {
     actions: Vec<Action>,
@@ -11,7 +10,10 @@ pub struct Actions {
 
 impl Actions {
     pub fn from_actions(actions: Vec<Action>) -> Self {
-        let mut ret = Self { actions, valid: Ok(()) };
+        let mut ret = Self {
+            actions,
+            valid: Ok(()),
+        };
         ret.validate();
         ret
     }
@@ -107,9 +109,9 @@ impl Actions {
             }
         }
 
-        Plot::draw_lines(ui, path.clone(), Rgba::BLACK);
-        Plot::draw_points(ui, vec![*start_pos], Rgba::RED);
-        Plot::draw_points(ui, path[1..].to_vec(), Rgba::GREEN);
+        Plot::draw_lines(ui, &path, Rgba::BLACK);
+        Plot::draw_points(ui, &[*start_pos], Rgba::RED);
+        Plot::draw_points(ui, &path[1..], Rgba::GREEN);
     }
     pub fn actions(&self) -> &[Action] {
         &self.actions
@@ -117,7 +119,6 @@ impl Actions {
     pub fn is_valid(&self) -> bool {
         self.valid.is_ok()
     }
-
 }
 
 pub enum ActionError {

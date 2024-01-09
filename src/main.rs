@@ -7,10 +7,10 @@ mod plot;
 mod tools;
 mod vec;
 
-use help::Help;
-use tools::Tools;
-use plot::Plot;
 use actions::Action;
+use help::Help;
+use plot::Plot;
+use tools::{PointSelection, Tools};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -30,7 +30,7 @@ struct App {
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            help: Default::default(),
+            help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
         }
     }
@@ -52,11 +52,11 @@ impl App {
                             self.plot.set_tools(Tools::None);
                         } else if ui.button("Measure Distance").clicked() {
                             self.plot.set_tools(Tools::MeasureDistance {
-                                selection: Default::default(),
+                                selection: PointSelection::default(),
                             });
                         } else if ui.button("Measure Angle").clicked() {
                             self.plot.set_tools(Tools::MeasureAngle {
-                                selection: Default::default(),
+                                selection: PointSelection::default(),
                             });
                         }
                     });
@@ -93,7 +93,11 @@ impl App {
                     ui.heading("Action Type");
                     // ensure button in on the right hand side
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-                        ui.heading(if self.plot.actions.is_valid() { "✅" } else { "⚠" });
+                        ui.heading(if self.plot.actions.is_valid() {
+                            "✅"
+                        } else {
+                            "⚠"
+                        });
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.button("Add Action").clicked();
