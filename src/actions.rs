@@ -3,6 +3,7 @@ use eframe::egui::Rgba;
 use egui_plot::PlotUi;
 use std::f64::{consts::PI, NAN};
 
+pub mod action_builder;
 
 pub struct Actions {
     actions: Vec<Action>,
@@ -126,6 +127,7 @@ pub enum ActionError {
     LateStart,
 }
 
+#[derive(Debug, Clone)]
 pub enum Action {
     StartAt { pos: Vec2, heading: f64 },
     MoveRel { rel: f64 },
@@ -152,7 +154,7 @@ impl Action {
     pub fn value(&self) -> String {
         match self {
             Self::StartAt { pos, heading } => {
-                format!("({}m, {}m) @ {} deg", pos.x(), pos.y(), heading * 180. / PI)
+                format!("({}m, {}m) @ {} deg", pos.x(), pos.y(), (heading * 180. / PI).round())
             }
             Self::MoveRel { rel } | Self::MoveRelAbs { rel } => {
                 format!("{rel}m")

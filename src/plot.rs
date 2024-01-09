@@ -1,12 +1,13 @@
 use eframe::egui::{self, Context, TextureHandle, Rgba, TextureOptions};
 use egui_plot::{Line, Points, PlotPoints, PlotUi};
-use crate::{actions::*, vec::Vec2, tools::Tools};
+use crate::{actions::{*, action_builder::*}, vec::Vec2, tools::Tools};
 
 use std::f64::consts::FRAC_PI_2;
 
 pub struct Plot {
     img: TextureHandle,
     pub actions: Actions,
+    pub action_builder: ActionBuilder,
     tools: Tools,
 }
 
@@ -22,6 +23,7 @@ impl Plot {
                 Action::MoveRelAbs { rel: 0.2 },
                 Action::MoveRel { rel: 1. },
             ]),
+            action_builder: ActionBuilder::new(),
             tools: Default::default(),
         }
     }

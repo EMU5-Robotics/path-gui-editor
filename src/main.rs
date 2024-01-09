@@ -75,7 +75,8 @@ impl App {
             });
     }
 
-    fn draw_panel(&self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
+    fn draw_panel(&mut self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
+
         let create_row = |ui: &mut egui::Ui, act: &Action| {
             ui.label(act.name());
             ui.label(act.value());
@@ -83,7 +84,7 @@ impl App {
             ui.end_row();
         };
 
-        let table = |ui: &mut _| {
+        let mut table = |ui: &mut _| {
             egui::Grid::new("actions")
                 .striped(true)
                 .num_columns(5)
@@ -96,7 +97,9 @@ impl App {
                         ui.heading(if self.plot.actions.is_valid() { "✅" } else { "⚠" });
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.button("Add Action").clicked();
+                        if ui.button("Add Action").clicked() {
+                            self.plot.action_builder.open();
+                        }
                         ui.button("Remove Action").clicked();
                     });
                     ui.end_row();
@@ -124,6 +127,8 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
+        self.plot.action_builder.draw(ctx, &mut self.plot.actions);
+
         // draw help
         self.help.draw(ctx);
 
