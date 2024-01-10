@@ -32,54 +32,6 @@ impl From<Vec<Action>> for RobotState {
 }
 
 impl RobotState {
-    /* pub fn validate(&mut self) {
-        // an empty path is still a valid path
-        if self.actions.is_empty() {
-            return self.valid = Ok(());
-        }
-
-        let mut actions = self.actions.iter();
-
-        let mut pos: Vec2;
-        let mut heading: f64;
-
-        // ensure StartAt is called before first movement
-        // TODO:
-        // 1: expand to allow for non movement
-        // actions before StartAt?
-        // 2: Take into consideration bounding box
-        // and heading
-        let Some(Action::StartAt {
-            pos: start_pos,
-            heading: start_heading,
-        }) = actions.next()
-        else {
-            return self.valid = Err(ActionError::NoStartingPos);
-        };
-
-        // check bot within bounds
-        if start_pos.x().abs() >= 1.8288 || start_pos.y().abs() >= 1.8288 {
-            return self.valid = Err(ActionError::OutOfBounds);
-        }
-        pos = *start_pos;
-        heading = *start_heading;
-
-        for action in actions {
-            // ensure StartAt is not called twice
-            if let Action::StartAt { .. } = action {
-                return self.valid = Err(ActionError::LateStart);
-            }
-
-            self.try_action(*action);
-            // check bot within bounds after each movement
-            if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
-                return self.valid = Err(ActionError::OutOfBounds);
-            }
-        }
-
-        self.valid = Ok(());
-    } */
-
     // TODO:
     // 1: figure out how code should be structured
     // to reduce code duplication but preserve needed information
@@ -88,12 +40,6 @@ impl RobotState {
         if self.actions.is_empty() {
             return;
         }
-        /*
-        self.validate();
-
-        if self.valid.is_err() {
-            return;
-        } */
 
         let mut actions = self.actions.iter();
 
@@ -192,7 +138,7 @@ impl RobotState {
 
         match action {
             Action::StartAt { pos, heading: _ } => {
-                if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
+                if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }
@@ -201,12 +147,12 @@ impl RobotState {
                 *pos.mut_x() += self.heading.cos() * rel;
                 *pos.mut_y() += self.heading.sin() * rel;
 
-                if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
+                if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }
             Action::MoveTo { pos } => {
-                if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
+                if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }
