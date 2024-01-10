@@ -18,7 +18,7 @@ impl Plot {
             actions: RobotState::from(vec![
                 Action::StartAt {
                     pos: Vec2([0.0, -1.7]),
-                    heading: -FRAC_PI_2,
+                    heading: 0.,
                 },
                 Action::MoveRelAbs { rel: 0.2 },
                 Action::MoveRel { rel: 1. },

@@ -88,7 +88,7 @@ impl RobotState {
         if self.actions.is_empty() {
             return;
         }
-        /* 
+        /*
         self.validate();
 
         if self.valid.is_err() {
@@ -134,26 +134,29 @@ impl RobotState {
         &self.actions
     }
 
-    /* pub fn is_valid(&self) -> bool {
-        self.valid.is_ok()
-    } */
-
     pub fn try_action(&mut self, action: Action) -> Result<(), ActionCreationError> {
         match self.is_valid_next(&action) {
-            Ok(_) => Ok({
+            Ok(_) => {
                 self.do_action(&action);
                 self.add_action(action);
-            }),
+                Ok(())
+            }
             Err(err) => Err(err),
         }
     }
-    
+
     fn add_action(&mut self, action: Action) {
         self.actions.push(action);
     }
 
+    // Need better implementation
     pub fn remove_last(&mut self) {
         self.actions.pop();
+        self.pos = Default::default();
+        self.heading = Default::default();
+        for action in &self.actions {
+            action.modify_position(&mut self.pos, &mut self.heading)
+        }
     }
 
     fn do_action(&mut self, action: &Action) {
@@ -166,11 +169,13 @@ impl RobotState {
                 self.heading = *start_heading;
             }
             Action::MoveRel { rel } | Action::MoveRelAbs { rel } => {
-                *self.pos.mut_x() -= self.heading.sin() * rel;
-                *self.pos.mut_y() += self.heading.cos() * rel;
+                *self.pos.mut_x() += self.heading.cos() * rel;
+                *self.pos.mut_y() += self.heading.sin() * rel;
             }
             Action::MoveTo { pos: new_pos } => {
-                self.heading = (self.pos.y()/self.pos.x()).atan();
+                let del_x = new_pos.x() - self.pos.x();
+                let del_y = new_pos.y() - self.pos.y();
+                self.heading = del_y.atan2(del_x);
                 self.pos = *new_pos;
             }
         }
@@ -181,7 +186,7 @@ impl RobotState {
             return Err(ActionCreationError::NoStart);
         }
 
-        if !self.actions.is_empty() && matches!(action, &Action::StartAt { pos: _, heading: _}) {
+        if !self.actions.is_empty() && matches!(action, &Action::StartAt { pos: _, heading: _ }) {
             return Err(ActionCreationError::ExtraStart);
         }
 
@@ -190,21 +195,21 @@ impl RobotState {
                 if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
                     return Err(ActionCreationError::OutOfBounds);
                 }
-            },
+            }
             Action::MoveRel { rel } | Action::MoveRelAbs { rel } => {
-                let mut pos = self.pos.clone();
-                *pos.mut_x() -= self.heading.sin() * rel;
-                *pos.mut_y() += self.heading.cos() * rel;
+                let mut pos = self.pos;
+                *pos.mut_x() += self.heading.cos() * rel;
+                *pos.mut_y() += self.heading.sin() * rel;
 
                 if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
                     return Err(ActionCreationError::OutOfBounds);
                 }
-            },
+            }
             Action::MoveTo { pos } => {
                 if pos.x().abs() >= 1.8288 || pos.y().abs() >= 1.8288 {
                     return Err(ActionCreationError::OutOfBounds);
                 }
-            },
+            }
         };
 
         Ok(())

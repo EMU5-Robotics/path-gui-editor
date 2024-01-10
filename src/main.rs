@@ -1,15 +1,15 @@
 use eframe::egui;
 use egui::Context;
 
-mod robot_state;
 mod help;
 mod plot;
+mod robot_state;
 mod tools;
 mod vec;
 
-use robot_state::Action;
 use help::Help;
 use plot::Plot;
+use robot_state::Action;
 use tools::Tools;
 
 fn main() {

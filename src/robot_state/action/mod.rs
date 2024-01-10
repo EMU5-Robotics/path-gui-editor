@@ -73,11 +73,13 @@ impl Action {
                 *heading = *start_heading;
             }
             Self::MoveRel { rel } | Self::MoveRelAbs { rel } => {
-                *pos.mut_x() -= heading.sin() * rel;
-                *pos.mut_y() += heading.cos() * rel;
+                *pos.mut_x() += heading.cos() * rel;
+                *pos.mut_y() += heading.sin() * rel;
             }
             Self::MoveTo { pos: new_pos } => {
-                *heading = (pos.y()/pos.x()).atan();
+                let del_x = new_pos.x() - pos.x();
+                let del_y = new_pos.y() - pos.y();
+                *heading = del_y.atan2(del_x);
                 *pos = *new_pos;
             }
         }
