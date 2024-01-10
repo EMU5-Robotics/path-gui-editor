@@ -1,16 +1,16 @@
 use eframe::egui;
 use egui::Context;
 
-mod actions;
+mod robot_state;
 mod help;
 mod plot;
 mod tools;
 mod vec;
 
+use robot_state::Action;
 use help::Help;
-use tools::Tools;
 use plot::Plot;
-use actions::Action;
+use tools::Tools;
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -61,7 +61,7 @@ impl App {
                         }
                     });
                     ui.menu_button("Help", |ui| {
-                        if ui.button("Actions").clicked() {
+                        if ui.button("RobotState").clicked() {
                             self.help.actions = true;
                         }
                         if ui.button("Ui (TODO)").clicked() {
@@ -76,7 +76,6 @@ impl App {
     }
 
     fn draw_panel(&mut self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
-
         let create_row = |ui: &mut egui::Ui, act: &Action| {
             ui.label(act.name());
             ui.label(act.value());
@@ -93,8 +92,12 @@ impl App {
                     ui.heading("Action Data");
                     ui.heading("Action Type");
                     // ensure button in on the right hand side
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-                        ui.heading(if self.plot.actions.is_valid() { "✅" } else { "⚠" });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |_ui| {
+                        /* ui.heading(if self.plot.actions.is_valid() {
+                            "✅"
+                        } else {
+                            "⚠"
+                        }); */
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if ui.button("Add Action").clicked() {
@@ -129,7 +132,9 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
-        self.plot.action_builder_window.draw(ctx, &mut self.plot.actions);
+        self.plot
+            .action_builder_window
+            .draw(ctx, &mut self.plot.actions);
 
         // draw help
         self.help.draw(ctx);

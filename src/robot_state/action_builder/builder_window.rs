@@ -1,17 +1,16 @@
 use eframe::egui::{Context, Window};
 
-use super::{Actions, builder_menu::BuilderMenu};
+use super::{super::RobotState, ActionBuilderMenu};
 
-
-pub struct BuilderWindow {
-    menu: BuilderMenu,
+pub struct ActionBuilderWindow {
+    menu: ActionBuilderMenu,
     pub open: bool,
 }
 
-impl BuilderWindow {
-    pub fn new() -> BuilderWindow {
-        BuilderWindow {
-            menu: BuilderMenu::new(),
+impl ActionBuilderWindow {
+    pub fn new() -> ActionBuilderWindow {
+        ActionBuilderWindow {
+            menu: ActionBuilderMenu::new(),
             open: false,
         }
     }
@@ -20,7 +19,7 @@ impl BuilderWindow {
         self.open = true;
     }
 
-    pub fn draw(&mut self, ctx: &Context, actions: &mut Actions) {
+    pub fn draw(&mut self, ctx: &Context, actions: &mut RobotState) {
         Window::new("Add Action")
             .resizable(true)
             .open(&mut self.open)
@@ -28,6 +27,4 @@ impl BuilderWindow {
                 self.menu.draw(ui, actions);
             });
     }
-
-    
 }
