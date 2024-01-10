@@ -98,7 +98,7 @@ impl App {
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if ui.button("Add Action").clicked() {
-                            self.plot.action_builder.open();
+                            self.plot.action_builder_window.open();
                         }
                         ui.button("Remove Action").clicked();
                     });
@@ -127,7 +127,7 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
-        self.plot.action_builder.draw(ctx, &mut self.plot.actions);
+        self.plot.action_builder_window.draw(ctx, &mut self.plot.actions);
 
         // draw help
         self.help.draw(ctx);

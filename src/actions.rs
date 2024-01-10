@@ -4,6 +4,8 @@ use egui_plot::PlotUi;
 use std::f64::{consts::PI, NAN};
 
 pub mod action_builder;
+pub mod builder_window;
+pub mod builder_menu;
 
 pub struct Actions {
     actions: Vec<Action>,
@@ -117,6 +119,10 @@ impl Actions {
     }
     pub fn is_valid(&self) -> bool {
         self.valid.is_ok()
+    }
+
+    pub fn add(&mut self, action: Action) {
+        self.actions.push(action);
     }
 
 }
