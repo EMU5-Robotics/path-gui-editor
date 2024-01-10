@@ -100,7 +100,9 @@ impl App {
                         if ui.button("Add Action").clicked() {
                             self.plot.action_builder_window.open();
                         }
-                        ui.button("Remove Action").clicked();
+                        if ui.button("Remove Action").clicked() {
+                            self.plot.actions.remove_last();
+                        }
                     });
                     ui.end_row();
                     for action in self.plot.actions.actions() {

@@ -125,6 +125,10 @@ impl Actions {
         self.actions.push(action);
     }
 
+    pub fn remove_last(&mut self) {
+        let _ = self.actions.pop();
+    }
+
 }
 
 pub enum ActionError {
