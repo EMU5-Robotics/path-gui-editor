@@ -53,6 +53,20 @@ impl ActionBuilderMenu {
                     self.field_labels[1] = FieldLabel::Y;
                     self.field_labels[2] = FieldLabel::None;
                 }
+                if ui.button("Turn By").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNBY;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
+                    self.field_labels[2] = FieldLabel::None;
+                }
+                if ui.button("Turn To").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNTO;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
+                    self.field_labels[2] = FieldLabel::None;
+                }
             });
 
             ui.label(format!("Action: {}", self.action.name()));

@@ -4,6 +4,7 @@ pub enum FieldLabel {
     Y,
     Heading,
     Distance,
+    Angle,
     #[default]
     None,
 }
@@ -13,8 +14,9 @@ impl FieldLabel {
         match self {
             FieldLabel::X => "Select x:",
             FieldLabel::Y => "Select y:",
-            FieldLabel::Heading => "Select Heading (rad):",
+            FieldLabel::Heading => "Select heading (deg):",
             FieldLabel::Distance => "Select distance:",
+            FieldLabel::Angle => "Select angle (deg):",
             FieldLabel::None => "",
         }
     }

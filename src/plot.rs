@@ -2,8 +2,6 @@ use crate::{robot_state::*, tools::Tools, vec::Vec2};
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
 
-use std::f64::consts::FRAC_PI_2;
-
 pub struct Plot {
     img: TextureHandle,
     pub actions: RobotState,
