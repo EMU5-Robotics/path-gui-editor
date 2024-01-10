@@ -11,6 +11,7 @@ pub use self::{
     action_builder::{ActionBuilderMenu, ActionBuilderWindow},
 };
 
+#[derive(Default)]
 pub struct RobotState {
     actions: Vec<Action>,
     pos: Vec2,
@@ -19,14 +20,12 @@ pub struct RobotState {
 
 impl From<Vec<Action>> for RobotState {
     fn from(actions: Vec<Action>) -> Self {
-        let mut ret = RobotState {
-            actions: Default::default(),
-            pos: Default::default(),
-            heading: Default::default(),
-        };
+        let mut ret = RobotState::default();
+
         for action in actions {
             let _ = ret.try_action(action);
         }
+
         ret
     }
 }
@@ -82,7 +81,7 @@ impl RobotState {
 
     pub fn try_action(&mut self, action: Action) -> Result<(), ActionCreationError> {
         match self.is_valid_next(&action) {
-            Ok(_) => {
+            Ok(()) => {
                 self.do_action(&action);
                 self.add_action(action);
                 Ok(())
@@ -101,7 +100,7 @@ impl RobotState {
         self.pos = Default::default();
         self.heading = Default::default();
         for action in &self.actions {
-            action.modify_position(&mut self.pos, &mut self.heading)
+            action.modify_position(&mut self.pos, &mut self.heading);
         }
     }
 
@@ -137,7 +136,7 @@ impl RobotState {
         }
 
         match action {
-            Action::StartAt { pos, heading: _ } => {
+            Action::StartAt { pos, heading: _ } | Action::MoveTo { pos } => {
                 if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
@@ -147,11 +146,6 @@ impl RobotState {
                 *pos.mut_x() += self.heading.cos() * rel;
                 *pos.mut_y() += self.heading.sin() * rel;
 
-                if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
-                    return Err(ActionCreationError::OutOfBounds);
-                }
-            }
-            Action::MoveTo { pos } => {
                 if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
