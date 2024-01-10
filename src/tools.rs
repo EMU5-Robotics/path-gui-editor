@@ -68,11 +68,8 @@ impl Tools {
     }
     pub fn draw_defered(&self, ui: &Ui, resp: egui_plot::PlotResponse<()>) {
         match self {
-            Self::MeasureDistance { selection } => {
-                Self::draw_measure_defered(ui, selection, resp)
-            }
-            Self::MeasureAngle { selection } => {
-            }
+            Self::MeasureDistance { selection } => Self::draw_measure_defered(ui, selection, resp),
+            Self::MeasureAngle { selection } => {}
             _ => {}
         }
     }
@@ -80,17 +77,26 @@ impl Tools {
         todo!()
     }
 
-    fn draw_measure_defered(ui: &Ui, selection: &PointSelection<2>, resp: egui_plot::PlotResponse<()>) {
-        let painter = ui.ctx().layer_painter(egui::layers::LayerId::new(egui::layers::Order::Tooltip, egui::Id::new("measure_tool")));
+    fn draw_measure_defered(
+        ui: &Ui,
+        selection: &PointSelection<2>,
+        resp: egui_plot::PlotResponse<()>,
+    ) {
+        let painter = ui.ctx().layer_painter(egui::layers::LayerId::new(
+            egui::layers::Order::Tooltip,
+            egui::Id::new("measure_tool"),
+        ));
 
         let draw_text = |ui: &Ui, p1: Vec2, p2: Vec2| {
             let diff = p2 - p1;
 
             let wt: egui::widget_text::WidgetText = format!("{:.3}m", diff.mag()).into();
-            let galley = wt.into_galley(ui, None, 100.0, egui::style::FontSelection::Default).galley;
+            let galley = wt
+                .into_galley(ui, None, 100.0, egui::style::FontSelection::Default)
+                .galley;
             let rect = galley.rect;
             let text_pos = (p1 + p2) / 2.0;
-            
+
             let dir = diff.normalised();
             let inv_gradient = Vec2([dir.y(), dir.x()]) * (dir.x() * dir.y()).signum();
 
@@ -99,9 +105,15 @@ impl Tools {
 
             let rotation = f64::atan(dir.y() / dir.x());
 
-
             let points = resp.transform.position_from_point(&text_pos.0.into());
-            let mut shape = egui::epaint::TextShape::new([points.x + text_offset.x() as f32,points.y + text_offset.y() as f32].into(), galley);
+            let mut shape = egui::epaint::TextShape::new(
+                [
+                    points.x + text_offset.x() as f32,
+                    points.y + text_offset.y() as f32,
+                ]
+                .into(),
+                galley,
+            );
             shape.angle = -rotation as f32;
             painter.add(egui::Shape::Text(shape));
         };
@@ -122,12 +134,9 @@ impl Tools {
             }
             _ => unreachable!(),
         }
-
-        
     }
 
     fn draw_measure(ui: &mut PlotUi, selection: &PointSelection<2>) {
-
         match selection.current_size {
             0 => {}
             1 => {
@@ -136,7 +145,11 @@ impl Tools {
                 // draw line to pointer if pointer is within plot
                 if ui.response().hovered() {
                     if let Some(point) = ui.pointer_coordinate() {
-                        Plot::draw_lines(ui, vec![first_point, [point.x, point.y].into()], Rgba::BLACK);
+                        Plot::draw_lines(
+                            ui,
+                            vec![first_point, [point.x, point.y].into()],
+                            Rgba::BLACK,
+                        );
                     }
                 }
 
@@ -159,7 +172,11 @@ impl Tools {
                 // draw line to pointer if pointer is within plot
                 if ui.response().hovered() {
                     if let Some(point) = ui.pointer_coordinate() {
-                        Plot::draw_lines(ui, vec![first_point, [point.x, point.y].into()], Rgba::BLACK);
+                        Plot::draw_lines(
+                            ui,
+                            vec![first_point, [point.x, point.y].into()],
+                            Rgba::BLACK,
+                        );
                     }
                 }
 
@@ -174,14 +191,22 @@ impl Tools {
                 // draw line to pointer if pointer is within plot
                 if ui.response().hovered() {
                     if let Some(point) = ui.pointer_coordinate() {
-                        Plot::draw_lines(ui, vec![second_point, [point.x, point.y].into()], Rgba::BLACK);
+                        Plot::draw_lines(
+                            ui,
+                            vec![second_point, [point.x, point.y].into()],
+                            Rgba::BLACK,
+                        );
                     }
                 }
                 Plot::draw_points(ui, vec![first_point], Rgba::BLUE);
             }
             3 => {
                 Plot::draw_lines(ui, selection.points.to_vec(), Rgba::BLACK);
-                Plot::draw_points(ui, vec![selection.points[0], selection.points[2]], Rgba::BLUE);
+                Plot::draw_points(
+                    ui,
+                    vec![selection.points[0], selection.points[2]],
+                    Rgba::BLUE,
+                );
             }
             _ => unreachable!(),
         }
