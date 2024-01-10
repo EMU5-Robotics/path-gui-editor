@@ -1,7 +1,7 @@
 use eframe::egui;
 use egui::{containers::Window, widgets::Label, Context};
 
-use crate::actions::Action;
+use crate::robot_state::Action;
 
 #[derive(Default)]
 pub struct Help {

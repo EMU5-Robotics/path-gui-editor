@@ -1,16 +1,15 @@
 use crate::{
-    actions::{Action, Actions},
+    robot_state::{Action, ActionBuilderWindow, RobotState},
     tools::Tools,
     vec::Vec2,
 };
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
 
-use std::f64::consts::FRAC_PI_2;
-
 pub struct Plot {
     img: TextureHandle,
-    pub actions: Actions,
+    pub actions: RobotState,
+    pub action_builder_window: ActionBuilderWindow,
     tools: Tools,
 }
 
@@ -18,14 +17,15 @@ impl Plot {
     pub fn new(ctx: &Context) -> Self {
         Self {
             img: Self::load_field_image(ctx),
-            actions: Actions::from_actions(vec![
+            actions: RobotState::from(vec![
                 Action::StartAt {
                     pos: Vec2([0.0, -1.7]),
-                    heading: -FRAC_PI_2,
+                    heading: 0.,
                 },
                 Action::MoveRelAbs { rel: 0.2 },
                 Action::MoveRel { rel: 1. },
             ]),
+            action_builder_window: ActionBuilderWindow::new(),
             tools: Tools::default(),
         }
     }

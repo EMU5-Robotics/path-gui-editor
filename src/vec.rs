@@ -5,6 +5,7 @@ pub struct Vec2(pub [f64; 2]);
 
 impl Vec2 {
     pub const NONE: Self = Vec2([f64::NAN; 2]);
+    pub const ZERO: Self = Vec2([0.0; 2]);
 
     pub fn x(&self) -> f64 {
         self.0[0]

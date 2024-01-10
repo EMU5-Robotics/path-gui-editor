@@ -1,6 +1,6 @@
 use std::f64::consts::FRAC_1_PI;
 
-use eframe::egui::{self, Rgba, Ui, Painter};
+use eframe::egui::{self, Painter, Rgba, Ui};
 use egui_plot::PlotUi;
 
 use crate::{plot::Plot, vec::Vec2};
@@ -99,8 +99,14 @@ impl Tools {
             let rotation = f64::atan(dir.y() / dir.x());
 
             let points = resp.transform.position_from_point(&text_pos.0.into());
-            Self::draw_text_centred_with_rotation(ui,points + text_offset.into(), rotation as f32, &painter, &format!("{:.3}", diff.mag()));
 
+            Self::draw_text_centred_with_rotation(
+                ui,
+                points + text_offset.into(),
+                rotation as f32,
+                &painter,
+                &format!("{:.3}", diff.mag()),
+            );
         };
 
         match selection.current_size {
@@ -121,7 +127,13 @@ impl Tools {
         }
     }
 
-    fn draw_text_centred_with_rotation(ui: &Ui, offset: egui::Pos2, rotation: f32, painter: &Painter, text: &str) {
+    fn draw_text_centred_with_rotation(
+        ui: &Ui,
+        offset: egui::Pos2,
+        rotation: f32,
+        painter: &Painter,
+        text: &str,
+    ) {
         // note coordinate space is logical pixel coordinates
         // i.e. (0,0) is top left
         // this also means that counterclockwise rotation is actually clockwise
@@ -131,11 +143,19 @@ impl Tools {
         // and what TextShape stores
         let rotation = -rotation;
         let text: egui::widget_text::WidgetText = text.into();
-        let galley = text.into_galley(ui, None, 100.0, egui::style::FontSelection::Default).galley;
+        let galley = text
+            .into_galley(ui, None, 100.0, egui::style::FontSelection::Default)
+            .galley;
         let centre_offset = (galley.rect.max - galley.rect.min) * 0.5;
         let (cos, sin) = (rotation.cos(), rotation.sin());
-        let centre_offset = egui::Vec2::new(cos*centre_offset.x - sin*centre_offset.y, sin*centre_offset.x + cos*centre_offset.y);
-        let mut text = egui::epaint::TextShape::new([offset.x - centre_offset.x, offset.y - centre_offset.y].into(), galley);
+        let centre_offset = egui::Vec2::new(
+            cos * centre_offset.x - sin * centre_offset.y,
+            sin * centre_offset.x + cos * centre_offset.y,
+        );
+        let mut text = egui::epaint::TextShape::new(
+            [offset.x - centre_offset.x, offset.y - centre_offset.y].into(),
+            galley,
+        );
         text.angle = rotation;
         painter.add(egui::Shape::Text(text));
     }
@@ -162,8 +182,20 @@ impl Tools {
             let large_angle = 360.0 - small_angle;
 
             let circle_centre = resp.transform.position_from_point(&p2.0.into());
-            Self::draw_text_centred_with_rotation(ui, circle_centre + angle_offset, 0., &painter, &format!("{small_angle:.2}"));
-            Self::draw_text_centred_with_rotation(ui, circle_centre - angle_offset, 0., &painter, &format!("{large_angle:.2}"));
+            Self::draw_text_centred_with_rotation(
+                ui,
+                circle_centre + angle_offset,
+                0.,
+                &painter,
+                &format!("{small_angle:.2}"),
+            );
+            Self::draw_text_centred_with_rotation(
+                ui,
+                circle_centre - angle_offset,
+                0.,
+                &painter,
+                &format!("{large_angle:.2}"),
+            );
         };
 
         match selection.current_size {
