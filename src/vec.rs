@@ -86,3 +86,15 @@ impl From<Vec2> for [f64; 2] {
         val.0
     }
 }
+
+impl From<Vec2> for eframe::egui::Vec2 {
+    fn from(val: Vec2) -> Self {
+        [val.x() as f32, val.y() as f32].into()
+    }
+}
+
+impl From<Vec2> for eframe::egui::Pos2 {
+    fn from(val: Vec2) -> Self {
+        [val.x() as f32, val.y() as f32].into()
+    }
+}
