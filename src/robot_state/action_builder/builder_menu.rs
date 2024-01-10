@@ -32,14 +32,14 @@ impl ActionBuilderMenu {
                     self.field_labels[1] = FieldLabel::Y;
                     self.field_labels[2] = FieldLabel::Heading;
                 }
-                if ui.button("Step By").clicked() {
+                if ui.button("Move By").clicked() {
                     ui.close_menu();
                     self.action = Action::MOVEREL;
                     self.field_labels[0] = FieldLabel::Distance;
                     self.field_labels[1] = FieldLabel::None;
                     self.field_labels[2] = FieldLabel::None;
                 }
-                if ui.button("Move By").clicked() {
+                if ui.button("Move By (Abs) ").clicked() {
                     ui.close_menu();
                     self.action = Action::MOVERELABS;
                     self.field_labels[0] = FieldLabel::Distance;
@@ -55,7 +55,14 @@ impl ActionBuilderMenu {
                 }
                 if ui.button("Turn By").clicked() {
                     ui.close_menu();
-                    self.action = Action::TURNBY;
+                    self.action = Action::TURNREL;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
+                    self.field_labels[2] = FieldLabel::None;
+                }
+                if ui.button("Turn By (Abs)").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNRELABS;
                     self.field_labels[0] = FieldLabel::Angle;
                     self.field_labels[1] = FieldLabel::None;
                     self.field_labels[2] = FieldLabel::None;

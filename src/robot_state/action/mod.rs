@@ -12,7 +12,8 @@ pub enum Action {
     MoveRel { rel: f64 },
     MoveRelAbs { rel: f64 },
     MoveTo { pos: Vec2 },
-    TurnBy { angle: f64 },
+    TurnRel { angle: f64 },
+    TurnRelAbs { angle: f64 },
     TurnTo { heading: f64 },
 }
 
@@ -24,7 +25,8 @@ impl Action {
     pub const MOVEREL: Action = Self::MoveRel { rel: NAN };
     pub const MOVERELABS: Action = Self::MoveRelAbs { rel: NAN };
     pub const MOVETO: Action = Self::MoveTo { pos: Vec2::NONE };
-    pub const TURNBY: Action = Self::TurnBy { angle: NAN };
+    pub const TURNREL: Action = Self::TurnRel { angle: NAN };
+    pub const TURNRELABS: Action = Self::TurnRelAbs { angle: NAN };
     pub const TURNTO: Action = Self::TurnTo { heading: NAN };
 
     pub const fn name(&self) -> &str {
@@ -32,7 +34,7 @@ impl Action {
             Self::StartAt { .. } => "Start At",
             Self::MoveRel { .. } | Self::MoveRelAbs { .. } => "Move",
             Self::MoveTo { .. } => "Move To",
-            Self::TurnBy { .. } => "Turn By",
+            Self::TurnRel { .. } | Self::TurnRelAbs { .. } => "Turn By",
             Self::TurnTo { .. } => "Turn To",
         }
     }
@@ -52,7 +54,10 @@ impl Action {
             Self::MoveTo { pos } => {
                 format!("({}m, {}m)", pos.x(), pos.y())
             }
-            Self::TurnBy { angle } => {
+            Self::TurnRel { angle } => {
+                format!("{} deg", angle.to_degrees().round())
+            }
+            Self::TurnRelAbs { angle } => {
                 format!("{} deg", angle.to_degrees().round())
             }
             Self::TurnTo { heading } => {
@@ -63,8 +68,8 @@ impl Action {
     pub const fn modifiers(&self) -> &str {
         match self {
             Self::StartAt { .. } | Self::MoveTo { .. } | Self::TurnTo { .. } => "Absolute",
-            Self::MoveRel { .. } | Self::TurnBy { .. } => "Relative",
-            Self::MoveRelAbs { .. } => "Relative (precomputed)",
+            Self::MoveRel { .. } | Self::TurnRel { .. } => "Relative",
+            Self::MoveRelAbs { .. } | Self::TurnRelAbs { .. } => "Relative (precomputed)",
         }
     }
     pub const fn description(&self) -> &str {
@@ -73,7 +78,8 @@ impl Action {
             Self::MoveRel { .. } => "Moves the robot forwards or backwards by the amount specified, where a negative number will make the robot go backwards. This is a relative command meaning it will generate the target point based on the current position given by odometry. Currently this will move the robot in a straight line.",
             Self::MoveRelAbs { .. } => "Moves the robot forwards or backwards by the amount specified, where a negative number will make the robot go backwards. This is a precomputed relative command (not to be confused with relative command) meaning it will generate the target point based on where the robot should be *in theory* meaning it does not need odometry to calculate the target point and instead can calculate it ahead of time. You probably don't want to use this after using MoveRel. Currently this will move the robot in a straight line.",
             Self::MoveTo { .. } => "Moves the robot to the specified target position. Currently this will move the robot in a straight line.",
-            Self::TurnBy { .. } => "Turns the robot clockwise or counter-clockwise by the amount specified, where a negative number will make the robot turn clockwise. This is a relative command meaning it will generate the target heading based on the current heading given by odometry.",
+            Self::TurnRel { .. } => "Turns the robot clockwise or counter-clockwise by the amount specified, where a negative number will make the robot turn clockwise. This is a relative command meaning it will generate the target heading based on the current heading given by odometry.",
+            Self::TurnRelAbs { .. } => "Turns the robot clockwise or counter-clockwise by the amount specified, where a negative number will make the robot turn clockwise. This is a precomputed relative command (not to be confused with relative command) meaning it will generate the target point based on where the robot should be *in theory* meaning it does not need odometry to calculate the target point and instead can calculate it ahead of time. You probably don't want to use this after using TurnRel.",
             Self::TurnTo { .. } => "Turns the robot to the specified target heading.",
         }
     }
@@ -96,7 +102,7 @@ impl Action {
                 *heading = del_y.atan2(del_x);
                 *pos = *new_pos;
             }
-            Self::TurnBy { angle } => {
+            Self::TurnRel { angle } | Self::TurnRelAbs { angle } => {
                 *heading += angle;
             }
             Self::TurnTo {
@@ -136,7 +142,11 @@ impl TryFrom<&ActionBuilderMenu> for Action {
                 ]),
             }),
 
-            Action::TurnBy { angle: _ } => Ok(Action::TurnBy {
+            Action::TurnRel { angle: _ } => Ok(Action::TurnRel {
+                angle: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
+            }),
+
+            Action::TurnRelAbs { angle: _ } => Ok(Action::TurnRelAbs {
                 angle: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
             }),
 
