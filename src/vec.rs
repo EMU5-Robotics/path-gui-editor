@@ -1,10 +1,11 @@
-use std::ops::*;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Default)]
 pub struct Vec2(pub [f64; 2]);
 
 impl Vec2 {
     pub const NONE: Self = Vec2([f64::NAN; 2]);
+    pub const ZERO: Self = Vec2([0.0; 2]);
 
     pub fn x(&self) -> f64 {
         self.0[0]
@@ -76,13 +77,25 @@ impl Neg for Vec2 {
 }
 
 impl From<[f64; 2]> for Vec2 {
-    fn from(v: [f64; 2]) -> Self {
-        Self(v)
+    fn from(val: [f64; 2]) -> Self {
+        Self(val)
     }
 }
 
-impl Into<[f64; 2]> for Vec2 {
-    fn into(self) -> [f64; 2] {
-        self.0
+impl From<Vec2> for [f64; 2] {
+    fn from(val: Vec2) -> Self {
+        val.0
+    }
+}
+
+impl From<Vec2> for eframe::egui::Vec2 {
+    fn from(val: Vec2) -> Self {
+        [val.x() as f32, val.y() as f32].into()
+    }
+}
+
+impl From<Vec2> for eframe::egui::Pos2 {
+    fn from(val: Vec2) -> Self {
+        [val.x() as f32, val.y() as f32].into()
     }
 }
