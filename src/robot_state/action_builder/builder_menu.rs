@@ -22,7 +22,7 @@ impl ActionBuilderMenu {
         }
     }
 
-    pub fn draw(&mut self, ui: &mut Ui, actions: &mut RobotState) {
+    pub fn draw(&mut self, ui: &mut Ui, state: &mut RobotState) {
         ui.horizontal(|ui| {
             ui.menu_button("Select Action", |ui| {
                 if ui.button("Start At").clicked() {
@@ -98,7 +98,7 @@ impl ActionBuilderMenu {
                     Ok(action) => {
                         self.field_inputs = Default::default();
                         self.status = "";
-                        match actions.try_action(action) {
+                        match state.try_action(action) {
                             Ok(_) => (),
                             Err(err) => self.status = err.message(),
                         }
