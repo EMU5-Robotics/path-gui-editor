@@ -10,7 +10,7 @@ mod vec;
 use help::Help;
 use plot::Plot;
 use robot_state::Action;
-use tools::Tools;
+use tools::{PointSelection, Tools};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
@@ -30,7 +30,7 @@ struct App {
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
-            help: Default::default(),
+            help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
         }
     }
@@ -52,11 +52,11 @@ impl App {
                             self.plot.set_tools(Tools::None);
                         } else if ui.button("Measure Distance").clicked() {
                             self.plot.set_tools(Tools::MeasureDistance {
-                                selection: Default::default(),
+                                selection: PointSelection::default(),
                             });
                         } else if ui.button("Measure Angle").clicked() {
                             self.plot.set_tools(Tools::MeasureAngle {
-                                selection: Default::default(),
+                                selection: PointSelection::default(),
                             });
                         }
                     });
@@ -86,20 +86,13 @@ impl App {
         let mut table = |ui: &mut _| {
             egui::Grid::new("actions")
                 .striped(true)
-                .num_columns(5)
+                .num_columns(4)
                 .show(ui, |ui| {
                     ui.heading("Action");
                     ui.heading("Action Data");
                     ui.heading("Action Type");
                     // ensure button in on the right hand side
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |_ui| {
-                        /* ui.heading(if self.plot.actions.is_valid() {
-                            "✅"
-                        } else {
-                            "⚠"
-                        }); */
-                    });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
                         if ui.button("Add Action").clicked() {
                             self.plot.action_builder_window.open();
                         }
