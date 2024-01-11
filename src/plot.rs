@@ -1,8 +1,10 @@
-use crate::{robot_state::*, tools::Tools, vec::Vec2};
+use crate::{
+    robot_state::{Action, ActionBuilderWindow, RobotState},
+    tools::Tools,
+    vec::Vec2,
+};
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
-
-use std::f64::consts::FRAC_PI_2;
 
 pub struct Plot {
     img: TextureHandle,
@@ -24,7 +26,7 @@ impl Plot {
                 Action::MoveRel { rel: 1. },
             ]),
             action_builder_window: ActionBuilderWindow::new(),
-            tools: Default::default(),
+            tools: Tools::default(),
         }
     }
     fn load_field_image(ctx: &Context) -> TextureHandle {
@@ -61,20 +63,20 @@ impl Plot {
                 self.tools.draw(plot_ui);
             });
 
-            self.tools.draw_defered(ui, plot_resp);
+            self.tools.draw_defered(ui, &plot_resp);
         });
     }
     pub fn set_tools(&mut self, tools: Tools) {
         self.tools = tools;
     }
-    pub fn draw_points(ui: &mut PlotUi, points: Vec<Vec2>, color: Rgba) {
-        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0.into()).collect());
+    pub fn draw_points(ui: &mut PlotUi, points: &[Vec2], color: Rgba) {
+        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0).collect());
         let points = Points::new(plotpoints).filled(true).color(color).radius(4.);
         ui.points(points);
     }
 
-    pub fn draw_lines(ui: &mut PlotUi, points: Vec<Vec2>, color: Rgba) {
-        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0.into()).collect());
+    pub fn draw_lines(ui: &mut PlotUi, points: &[Vec2], color: Rgba) {
+        let plotpoints = PlotPoints::new(points.iter().map(|v| v.0).collect());
         let points = Line::new(plotpoints).color(color).width(2.);
         ui.line(points);
     }

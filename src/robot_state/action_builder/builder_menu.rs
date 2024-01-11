@@ -78,7 +78,7 @@ impl ActionBuilderMenu {
                         self.field_inputs = Default::default();
                         self.status = "";
                         match actions.try_action(action) {
-                            Ok(_) => (),
+                            Ok(()) => (),
                             Err(err) => self.status = err.message(),
                         }
                     }

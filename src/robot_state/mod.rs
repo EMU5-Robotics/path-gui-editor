@@ -70,9 +70,9 @@ impl RobotState {
             }
         }
 
-        Plot::draw_lines(ui, path.clone(), Rgba::BLACK);
-        Plot::draw_points(ui, vec![*start_pos], Rgba::RED);
-        Plot::draw_points(ui, path[1..].to_vec(), Rgba::GREEN);
+        Plot::draw_lines(ui, &path, Rgba::BLACK);
+        Plot::draw_points(ui, &[*start_pos], Rgba::RED);
+        Plot::draw_points(ui, &path[1..], Rgba::GREEN);
     }
 
     pub fn actions(&self) -> &[Action] {
@@ -97,8 +97,8 @@ impl RobotState {
     // Need better implementation
     pub fn remove_last(&mut self) {
         self.actions.pop();
-        self.pos = Default::default();
-        self.heading = Default::default();
+        self.pos = Vec2::ZERO;
+        self.heading = 0.0;
         for action in &self.actions {
             action.modify_position(&mut self.pos, &mut self.heading);
         }
