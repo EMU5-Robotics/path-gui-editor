@@ -28,7 +28,8 @@ impl Help {
             .resizable(true)
             .open(&mut self.actions)
             .show(ctx, |ui| {
-                egui::Grid::new("action help")
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    egui::Grid::new("action help")
                     .striped(true)
                     .num_columns(5)
                     .show(ui, |ui| {
@@ -49,8 +50,10 @@ impl Help {
                             create_row(ui, action);
                         }
                     });
+                });
             });
     }
+
     fn draw_ui_help(&mut self, ctx: &Context) {
         Window::new("UI Help")
             .resizable(true)
@@ -59,6 +62,7 @@ impl Help {
                 ui.label("TODO");
             });
     }
+    
     fn draw_about(&mut self, ctx: &Context) {
         Window::new("About")
             .resizable(true)
