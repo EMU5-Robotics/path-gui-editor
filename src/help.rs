@@ -42,6 +42,9 @@ impl Help {
                             Action::MOVEREL,
                             Action::MOVERELABS,
                             Action::MOVETO,
+                            Action::TURNREL,
+                            Action::TURNRELABS,
+                            Action::TURNTO,
                         ] {
                             create_row(ui, action);
                         }
