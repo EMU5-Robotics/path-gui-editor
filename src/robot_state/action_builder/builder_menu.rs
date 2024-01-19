@@ -22,7 +22,7 @@ impl ActionBuilderMenu {
         }
     }
 
-    pub fn draw(&mut self, ui: &mut Ui, actions: &mut RobotState) {
+    pub fn draw(&mut self, ui: &mut Ui, state: &mut RobotState) {
         ui.horizontal(|ui| {
             ui.menu_button("Select Action", |ui| {
                 if ui.button("Start At").clicked() {
@@ -32,14 +32,14 @@ impl ActionBuilderMenu {
                     self.field_labels[1] = FieldLabel::Y;
                     self.field_labels[2] = FieldLabel::Heading;
                 }
-                if ui.button("Step By").clicked() {
+                if ui.button("Move By").clicked() {
                     ui.close_menu();
                     self.action = Action::MOVEREL;
                     self.field_labels[0] = FieldLabel::Distance;
                     self.field_labels[1] = FieldLabel::None;
                     self.field_labels[2] = FieldLabel::None;
                 }
-                if ui.button("Move By").clicked() {
+                if ui.button("Move By (Abs) ").clicked() {
                     ui.close_menu();
                     self.action = Action::MOVERELABS;
                     self.field_labels[0] = FieldLabel::Distance;
@@ -51,6 +51,27 @@ impl ActionBuilderMenu {
                     self.action = Action::MOVETO;
                     self.field_labels[0] = FieldLabel::X;
                     self.field_labels[1] = FieldLabel::Y;
+                    self.field_labels[2] = FieldLabel::None;
+                }
+                if ui.button("Turn By").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNREL;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
+                    self.field_labels[2] = FieldLabel::None;
+                }
+                if ui.button("Turn By (Abs)").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNRELABS;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
+                    self.field_labels[2] = FieldLabel::None;
+                }
+                if ui.button("Turn To").clicked() {
+                    ui.close_menu();
+                    self.action = Action::TURNTO;
+                    self.field_labels[0] = FieldLabel::Angle;
+                    self.field_labels[1] = FieldLabel::None;
                     self.field_labels[2] = FieldLabel::None;
                 }
             });
@@ -77,7 +98,7 @@ impl ActionBuilderMenu {
                     Ok(action) => {
                         self.field_inputs = Default::default();
                         self.status = "";
-                        match actions.try_action(action) {
+                        match state.try_action(action) {
                             Ok(()) => (),
                             Err(err) => self.status = err.message(),
                         }

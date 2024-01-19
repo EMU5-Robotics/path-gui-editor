@@ -123,6 +123,14 @@ impl RobotState {
                 self.heading = del_y.atan2(del_x);
                 self.pos = *new_pos;
             }
+            Action::TurnRel { angle } | Action::TurnRelAbs { angle } => {
+                self.heading += angle;
+            }
+            Action::TurnTo {
+                heading: new_heading,
+            } => {
+                self.heading = *new_heading;
+            }
         }
     }
 
@@ -150,6 +158,9 @@ impl RobotState {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }
+            Action::TurnRel { angle: _ }
+            | Action::TurnRelAbs { angle: _ }
+            | Action::TurnTo { heading: _ } => (),
         };
 
         Ok(())

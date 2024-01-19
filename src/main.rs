@@ -61,7 +61,7 @@ impl App {
                         }
                     });
                     ui.menu_button("Help", |ui| {
-                        if ui.button("RobotState").clicked() {
+                        if ui.button("Actions").clicked() {
                             self.help.actions = true;
                         }
                         if ui.button("Ui (TODO)").clicked() {

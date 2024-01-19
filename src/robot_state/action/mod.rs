@@ -1,4 +1,4 @@
-use std::f64::{consts::PI, NAN};
+use std::f64::NAN;
 
 use crate::vec::Vec2;
 
@@ -12,6 +12,9 @@ pub enum Action {
     MoveRel { rel: f64 },
     MoveRelAbs { rel: f64 },
     MoveTo { pos: Vec2 },
+    TurnRel { angle: f64 },
+    TurnRelAbs { angle: f64 },
+    TurnTo { heading: f64 },
 }
 
 impl Action {
@@ -22,12 +25,17 @@ impl Action {
     pub const MOVEREL: Action = Self::MoveRel { rel: NAN };
     pub const MOVERELABS: Action = Self::MoveRelAbs { rel: NAN };
     pub const MOVETO: Action = Self::MoveTo { pos: Vec2::NONE };
+    pub const TURNREL: Action = Self::TurnRel { angle: NAN };
+    pub const TURNRELABS: Action = Self::TurnRelAbs { angle: NAN };
+    pub const TURNTO: Action = Self::TurnTo { heading: NAN };
 
     pub const fn name(&self) -> &str {
         match self {
             Self::StartAt { .. } => "Start At",
             Self::MoveRel { .. } | Self::MoveRelAbs { .. } => "Move",
             Self::MoveTo { .. } => "Move To",
+            Self::TurnRel { .. } | Self::TurnRelAbs { .. } => "Turn By",
+            Self::TurnTo { .. } => "Turn To",
         }
     }
     pub fn value(&self) -> String {
@@ -37,7 +45,7 @@ impl Action {
                     "({}m, {}m) @ {} deg",
                     pos.x(),
                     pos.y(),
-                    (heading * 180. / PI).round()
+                    heading.to_degrees().round(),
                 )
             }
             Self::MoveRel { rel } | Self::MoveRelAbs { rel } => {
@@ -46,13 +54,18 @@ impl Action {
             Self::MoveTo { pos } => {
                 format!("({}m, {}m)", pos.x(), pos.y())
             }
+            Self::TurnRel { angle }
+            | Self::TurnRelAbs { angle }
+            | Self::TurnTo { heading: angle } => {
+                format!("{} deg", angle.to_degrees().round())
+            }
         }
     }
     pub const fn modifiers(&self) -> &str {
         match self {
-            Self::StartAt { .. } | Self::MoveTo { .. } => "Absolute",
-            Self::MoveRel { .. } => "Relative",
-            Self::MoveRelAbs { .. } => "Relative (precomputed)",
+            Self::StartAt { .. } | Self::MoveTo { .. } | Self::TurnTo { .. } => "Absolute",
+            Self::MoveRel { .. } | Self::TurnRel { .. } => "Relative",
+            Self::MoveRelAbs { .. } | Self::TurnRelAbs { .. } => "Relative (precomputed)",
         }
     }
     pub const fn description(&self) -> &str {
@@ -61,6 +74,9 @@ impl Action {
             Self::MoveRel { .. } => "Moves the robot forwards or backwards by the amount specified, where a negative number will make the robot go backwards. This is a relative command meaning it will generate the target point based on the current position given by odometry. Currently this will move the robot in a straight line.",
             Self::MoveRelAbs { .. } => "Moves the robot forwards or backwards by the amount specified, where a negative number will make the robot go backwards. This is a precomputed relative command (not to be confused with relative command) meaning it will generate the target point based on where the robot should be *in theory* meaning it does not need odometry to calculate the target point and instead can calculate it ahead of time. You probably don't want to use this after using MoveRel. Currently this will move the robot in a straight line.",
             Self::MoveTo { .. } => "Moves the robot to the specified target position. Currently this will move the robot in a straight line.",
+            Self::TurnRel { .. } => "Turns the robot clockwise or counter-clockwise by the amount specified, where a negative number will make the robot turn clockwise. This is a relative command meaning it will generate the target heading based on the current heading given by odometry.",
+            Self::TurnRelAbs { .. } => "Turns the robot clockwise or counter-clockwise by the amount specified, where a negative number will make the robot turn clockwise. This is a precomputed relative command (not to be confused with relative command) meaning it will generate the target point based on where the robot should be *in theory* meaning it does not need odometry to calculate the target point and instead can calculate it ahead of time. You probably don't want to use this after using TurnRel.",
+            Self::TurnTo { .. } => "Turns the robot to the specified target heading.",
         }
     }
     pub fn modify_position(&self, pos: &mut Vec2, heading: &mut f64) {
@@ -82,6 +98,14 @@ impl Action {
                 *heading = del_y.atan2(del_x);
                 *pos = *new_pos;
             }
+            Self::TurnRel { angle } | Self::TurnRelAbs { angle } => {
+                *heading += angle;
+            }
+            Self::TurnTo {
+                heading: new_heading,
+            } => {
+                *heading = *new_heading;
+            }
         }
     }
 }
@@ -96,7 +120,7 @@ impl TryFrom<&ActionBuilderMenu> for Action {
                     builder.field_inputs[0].trim().parse()?,
                     builder.field_inputs[1].trim().parse()?,
                 ]),
-                heading: builder.field_inputs[2].trim().parse()?,
+                heading: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
             }),
 
             Action::MoveRel { rel: _ } => Ok(Action::MoveRel {
@@ -112,6 +136,18 @@ impl TryFrom<&ActionBuilderMenu> for Action {
                     builder.field_inputs[0].trim().parse()?,
                     builder.field_inputs[1].trim().parse()?,
                 ]),
+            }),
+
+            Action::TurnRel { angle: _ } => Ok(Action::TurnRel {
+                angle: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
+            }),
+
+            Action::TurnRelAbs { angle: _ } => Ok(Action::TurnRelAbs {
+                angle: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
+            }),
+
+            Action::TurnTo { heading: _ } => Ok(Action::TurnTo {
+                heading: builder.field_inputs[0].trim().parse::<f64>()?.to_radians(),
             }),
         }
     }

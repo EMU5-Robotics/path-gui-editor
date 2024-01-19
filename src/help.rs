@@ -28,26 +28,32 @@ impl Help {
             .resizable(true)
             .open(&mut self.actions)
             .show(ctx, |ui| {
-                egui::Grid::new("action help")
-                    .striped(true)
-                    .num_columns(5)
-                    .show(ui, |ui| {
-                        ui.heading("Action");
-                        ui.heading("Action Type");
-                        ui.heading("Action Description");
-                        // ensure button in on the right hand side
-                        ui.end_row();
-                        for action in &[
-                            Action::STARTAT,
-                            Action::MOVEREL,
-                            Action::MOVERELABS,
-                            Action::MOVETO,
-                        ] {
-                            create_row(ui, action);
-                        }
-                    });
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    egui::Grid::new("action help")
+                        .striped(true)
+                        .num_columns(5)
+                        .show(ui, |ui| {
+                            ui.heading("Action");
+                            ui.heading("Action Type");
+                            ui.heading("Action Description");
+                            // ensure button in on the right hand side
+                            ui.end_row();
+                            for action in &[
+                                Action::STARTAT,
+                                Action::MOVEREL,
+                                Action::MOVERELABS,
+                                Action::MOVETO,
+                                Action::TURNREL,
+                                Action::TURNRELABS,
+                                Action::TURNTO,
+                            ] {
+                                create_row(ui, action);
+                            }
+                        });
+                });
             });
     }
+
     fn draw_ui_help(&mut self, ctx: &Context) {
         Window::new("UI Help")
             .resizable(true)
@@ -56,6 +62,7 @@ impl Help {
                 ui.label("TODO");
             });
     }
+
     fn draw_about(&mut self, ctx: &Context) {
         Window::new("About")
             .resizable(true)

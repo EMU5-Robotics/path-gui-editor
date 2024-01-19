@@ -19,12 +19,12 @@ impl ActionBuilderWindow {
         self.open = true;
     }
 
-    pub fn draw(&mut self, ctx: &Context, actions: &mut RobotState) {
+    pub fn draw(&mut self, ctx: &Context, state: &mut RobotState) {
         Window::new("Add Action")
             .resizable(true)
             .open(&mut self.open)
             .show(ctx, |ui| {
-                self.menu.draw(ui, actions);
+                self.menu.draw(ui, state);
             });
     }
 }
