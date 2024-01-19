@@ -54,14 +54,10 @@ impl Action {
             Self::MoveTo { pos } => {
                 format!("({}m, {}m)", pos.x(), pos.y())
             }
-            Self::TurnRel { angle } => {
+            Self::TurnRel { angle }
+            | Self::TurnRelAbs { angle }
+            | Self::TurnTo { heading: angle } => {
                 format!("{} deg", angle.to_degrees().round())
-            }
-            Self::TurnRelAbs { angle } => {
-                format!("{} deg", angle.to_degrees().round())
-            }
-            Self::TurnTo { heading } => {
-                format!("{} deg", heading.to_degrees().round())
             }
         }
     }

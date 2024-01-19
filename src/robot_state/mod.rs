@@ -158,7 +158,9 @@ impl RobotState {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }
-            Action::TurnRel { angle: _ } | Action::TurnRelAbs { angle: _ } | Action::TurnTo { heading: _ } => (),
+            Action::TurnRel { angle: _ }
+            | Action::TurnRelAbs { angle: _ }
+            | Action::TurnTo { heading: _ } => (),
         };
 
         Ok(())

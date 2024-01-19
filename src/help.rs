@@ -30,26 +30,26 @@ impl Help {
             .show(ctx, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     egui::Grid::new("action help")
-                    .striped(true)
-                    .num_columns(5)
-                    .show(ui, |ui| {
-                        ui.heading("Action");
-                        ui.heading("Action Type");
-                        ui.heading("Action Description");
-                        // ensure button in on the right hand side
-                        ui.end_row();
-                        for action in &[
-                            Action::STARTAT,
-                            Action::MOVEREL,
-                            Action::MOVERELABS,
-                            Action::MOVETO,
-                            Action::TURNREL,
-                            Action::TURNRELABS,
-                            Action::TURNTO,
-                        ] {
-                            create_row(ui, action);
-                        }
-                    });
+                        .striped(true)
+                        .num_columns(5)
+                        .show(ui, |ui| {
+                            ui.heading("Action");
+                            ui.heading("Action Type");
+                            ui.heading("Action Description");
+                            // ensure button in on the right hand side
+                            ui.end_row();
+                            for action in &[
+                                Action::STARTAT,
+                                Action::MOVEREL,
+                                Action::MOVERELABS,
+                                Action::MOVETO,
+                                Action::TURNREL,
+                                Action::TURNRELABS,
+                                Action::TURNTO,
+                            ] {
+                                create_row(ui, action);
+                            }
+                        });
                 });
             });
     }
@@ -62,7 +62,7 @@ impl Help {
                 ui.label("TODO");
             });
     }
-    
+
     fn draw_about(&mut self, ctx: &Context) {
         Window::new("About")
             .resizable(true)
