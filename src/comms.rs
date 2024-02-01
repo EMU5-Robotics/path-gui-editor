@@ -72,7 +72,7 @@ impl Comms {
             ui.end_row();
         };
 
-        Window::new("Action Help")
+        Window::new("Logs")
             .resizable(true)
             .open(&mut self.log_window)
             .show(ctx, |ui| {
