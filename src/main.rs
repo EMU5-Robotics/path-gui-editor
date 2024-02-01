@@ -1,12 +1,14 @@
 use eframe::egui;
 use egui::Context;
 
+mod comms;
 mod help;
 mod plot;
 mod robot_state;
 mod tools;
 mod vec;
 
+use comms::Comms;
 use help::Help;
 use plot::Plot;
 use robot_state::Action;
@@ -25,6 +27,7 @@ fn main() {
 struct App {
     plot: Plot,
     help: Help,
+    comms: Comms,
 }
 
 impl App {
@@ -32,6 +35,7 @@ impl App {
         Self {
             help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
+            comms: Comms::new("192.168.66.9:8733"),
         }
     }
 
@@ -58,6 +62,11 @@ impl App {
                             self.plot.set_tools(Tools::MeasureAngle {
                                 selection: PointSelection::default(),
                             });
+                        }
+                    });
+                    ui.menu_button("Communication", |ui| {
+                        if ui.button("logs").clicked() {
+                            self.comms.log_window = true;
                         }
                     });
                     ui.menu_button("Help", |ui| {
@@ -131,6 +140,9 @@ impl eframe::App for App {
 
         // draw help
         self.help.draw(ctx);
+
+        // draw logs
+        self.comms.draw(ctx);
 
         // top menu is fixed size of 30px tall
         self.draw_menu(ctx, 30.);
