@@ -1,4 +1,5 @@
 use crate::{plot::Plot, vec::Vec2};
+use communication::path::Action;
 use eframe::egui::Rgba;
 use egui_plot::PlotUi;
 
@@ -6,10 +7,8 @@ mod action;
 mod action_builder;
 
 use self::action::ActionCreationError;
-pub use self::{
-    action::Action,
-    action_builder::{ActionBuilderMenu, ActionBuilderWindow},
-};
+pub use self::action::ActionGuiReq;
+pub use self::action_builder::{ActionBuilderMenu, ActionBuilderWindow};
 
 #[derive(Default)]
 pub struct RobotState {
@@ -53,10 +52,10 @@ impl RobotState {
             unreachable!()
         };
 
-        pos = *start_pos;
+        pos = Vec2(*start_pos);
         heading = *start_heading;
 
-        let mut path = vec![*start_pos];
+        let mut path = vec![Vec2(*start_pos)];
 
         for action in actions {
             let idx = path.len();
@@ -65,13 +64,13 @@ impl RobotState {
             action.modify_position(&mut pos, &mut heading);
 
             // don't draw new point if it's within 1cm
-            if (before_pos - pos).mag() > 0.01 {
+            if (Vec2(before_pos.into()) - pos).mag() > 0.01 {
                 path.push(pos);
             }
         }
 
         Plot::draw_lines(ui, &path, Rgba::BLACK);
-        Plot::draw_points(ui, &[*start_pos], Rgba::RED);
+        Plot::draw_points(ui, &[Vec2(*start_pos)], Rgba::RED);
         Plot::draw_points(ui, &path[1..], Rgba::GREEN);
     }
 
@@ -110,7 +109,7 @@ impl RobotState {
                 pos: start_pos,
                 heading: start_heading,
             } => {
-                self.pos = *start_pos;
+                self.pos = Vec2(*start_pos);
                 self.heading = *start_heading;
             }
             Action::MoveRel { rel } | Action::MoveRelAbs { rel } => {
@@ -118,10 +117,10 @@ impl RobotState {
                 *self.pos.mut_y() += self.heading.sin() * rel;
             }
             Action::MoveTo { pos: new_pos } => {
-                let del_x = new_pos.x() - self.pos.x();
-                let del_y = new_pos.y() - self.pos.y();
+                let del_x = new_pos[0] - self.pos.x();
+                let del_y = new_pos[0] - self.pos.y();
                 self.heading = del_y.atan2(del_x);
-                self.pos = *new_pos;
+                self.pos = Vec2(*new_pos);
             }
             Action::TurnRel { angle } | Action::TurnRelAbs { angle } => {
                 self.heading += angle;
@@ -145,7 +144,7 @@ impl RobotState {
 
         match action {
             Action::StartAt { pos, heading: _ } | Action::MoveTo { pos } => {
-                if !(pos.x().abs() < 1.8288 && pos.y().abs() < 1.8288) {
+                if !(pos[0].abs() < 1.8288 && pos[1].abs() < 1.8288) {
                     return Err(ActionCreationError::OutOfBounds);
                 }
             }

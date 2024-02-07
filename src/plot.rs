@@ -1,8 +1,9 @@
 use crate::{
-    robot_state::{Action, ActionBuilderWindow, RobotState},
+    robot_state::{ActionBuilderWindow, RobotState},
     tools::Tools,
     vec::Vec2,
 };
+use communication::path::Action;
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
 
@@ -19,7 +20,7 @@ impl Plot {
             img: Self::load_field_image(ctx),
             actions: RobotState::from(vec![
                 Action::StartAt {
-                    pos: Vec2([0.0, -1.7]),
+                    pos: Vec2([0.0, -1.7]).0,
                     heading: 0.,
                 },
                 Action::MoveRelAbs { rel: 0.2 },

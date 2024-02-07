@@ -12,11 +12,11 @@ pub enum FieldLabel {
 impl FieldLabel {
     pub fn label(&self) -> &'static str {
         match self {
-            FieldLabel::X => "Select x:",
-            FieldLabel::Y => "Select y:",
-            FieldLabel::Heading => "Select heading (deg):",
-            FieldLabel::Distance => "Select distance:",
-            FieldLabel::Angle => "Select angle (deg):",
+            FieldLabel::X => "X:",
+            FieldLabel::Y => "Y:",
+            FieldLabel::Heading => "Heading:",
+            FieldLabel::Distance => "Distance:",
+            FieldLabel::Angle => "Angle:",
             FieldLabel::None => "",
         }
     }
