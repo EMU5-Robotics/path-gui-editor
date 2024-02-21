@@ -1,7 +1,8 @@
+use communication::path::Action;
 use eframe::egui;
 use egui::{containers::Window, widgets::Label, Context};
 
-use crate::robot_state::Action;
+use crate::robot_state::ActionGuiReq;
 
 #[derive(Default)]
 pub struct Help {
@@ -38,13 +39,13 @@ impl Help {
                         ui.heading("Action Description");
                         ui.end_row();
                         for action in &[
-                            Action::STARTAT,
-                            Action::MOVEREL,
-                            Action::MOVERELABS,
-                            Action::MOVETO,
-                            Action::TURNREL,
-                            Action::TURNRELABS,
-                            Action::TURNTO,
+                            Action::START_AT,
+                            Action::MOVE_REL,
+                            Action::MOVE_REL_ABS,
+                            Action::MOVE_TO,
+                            Action::TURN_REL,
+                            Action::TURN_REL_ABS,
+                            Action::TURN_TO,
                         ] {
                             create_row(ui, action);
                         }

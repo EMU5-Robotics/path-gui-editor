@@ -1,3 +1,4 @@
+use communication::path::Action;
 use eframe::egui;
 use egui::Context;
 
@@ -11,7 +12,7 @@ mod vec;
 use comms::Comms;
 use help::Help;
 use plot::Plot;
-use robot_state::Action;
+use robot_state::ActionGuiReq;
 use tools::{PointSelection, Tools};
 
 fn main() {

@@ -10,7 +10,7 @@ pub struct ActionBuilderWindow {
 impl ActionBuilderWindow {
     pub fn new() -> ActionBuilderWindow {
         ActionBuilderWindow {
-            menu: ActionBuilderMenu::new(),
+            menu: Default::default(),
             open: false,
         }
     }
