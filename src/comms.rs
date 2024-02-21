@@ -67,7 +67,7 @@ impl Comms {
     fn draw_logs(&mut self, ctx: &Context) {
         let create_row = |ui: &mut egui::Ui, log: &SimpleLog| {
             ui.add(Label::new(log.level.to_string()).wrap(true));
-            ui.add(Label::new(log.msg.to_owned()).wrap(true));
+            ui.add(Label::new(log.msg.clone()).wrap(true));
             ui.add(Label::new(Self::format_timestamp(log.timestamp)).wrap(true));
             ui.end_row();
         };

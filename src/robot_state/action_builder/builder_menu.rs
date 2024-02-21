@@ -25,7 +25,7 @@ impl Default for ActionBuilderMenu {
             field_inputs: Default::default(),
             status: Default::default(),
             action: Action::START_AT,
-            length_unit: Default::default(),
+            length_unit: LengthUnit::default(),
             angle_unit: AngleUnit::Degree,
             velocity: 100.,
         }
@@ -124,7 +124,7 @@ impl ActionBuilderMenu {
                     ui.separator();
 
                     for i in 0..3 {
-                        draw_field(ui, &self.action, i, &mut self.field_inputs)
+                        draw_field(ui, &self.action, i, &mut self.field_inputs);
                     }
 
                     ui.separator();
