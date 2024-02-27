@@ -3,7 +3,9 @@ use eframe::egui;
 use egui::Context;
 
 mod comms;
+mod graph;
 mod help;
+mod logging;
 mod plot;
 mod robot_state;
 mod tools;
@@ -11,11 +13,13 @@ mod vec;
 
 use comms::Comms;
 use help::Help;
+use logging::Logging;
 use plot::Plot;
 use robot_state::ActionGuiReq;
 use tools::{PointSelection, Tools};
 
 fn main() {
+    env_logger::init();
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
         "Path Editor",
@@ -28,6 +32,9 @@ fn main() {
 struct App {
     plot: Plot,
     help: Help,
+    //comms: Comms,
+    logging: Logging,
+    graphing: graph::Manager,
     comms: Comms,
 }
 
@@ -36,7 +43,10 @@ impl App {
         Self {
             help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
-            comms: Comms::new("192.168.66.9:8733"),
+            //comms: Comms::new("0.0.0.0:8733"),
+            logging: Logging::default(),
+            graphing: graph::Manager::default(),
+            comms: Comms::new("0.0.0.0:8733", cc.egui_ctx.clone()),
         }
     }
 
@@ -67,8 +77,11 @@ impl App {
                     });
                     ui.menu_button("Communication", |ui| {
                         if ui.button("logs").clicked() {
-                            self.comms.log_window = true;
+                            self.logging.window = true;
                         }
+                    });
+                    ui.menu_button("Graphs", |ui| {
+                        self.graphing.draw_menu(ui);
                     });
                     ui.menu_button("Help", |ui| {
                         if ui.button("Actions").clicked() {
@@ -142,8 +155,25 @@ impl eframe::App for App {
         // draw help
         self.help.draw(ctx);
 
+        let pkts = self.comms.get_packets();
+
+        let mut logs = Vec::new();
+        let mut point_buffers = Vec::new();
+        for pkt in pkts {
+            match pkt {
+                communication::ToClient::Log(l) => logs.push(l),
+                communication::ToClient::PointBuffer(p) => point_buffers.push(p),
+                _ => {}
+            }
+        }
+
         // draw logs
-        self.comms.draw(ctx);
+        self.logging.add_logs(logs);
+        self.logging.draw(ctx);
+
+        // draw graphs
+        self.graphing.add_buffers(point_buffers);
+        self.graphing.draw_graphs(ctx);
 
         // top menu is fixed size of 30px tall
         self.draw_menu(ctx, 30.);
