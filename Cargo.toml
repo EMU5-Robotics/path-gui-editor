@@ -6,8 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#communication = { git = "ssh://git@github.com/EMU5-Robotics/communication.git", rev = "a1945023d0dc7e6fac0aad03ae149beea83020b8" }
-communication = { path = "../communication/" }
+communication = { git = "ssh://git@github.com/EMU5-Robotics/communication.git", rev = "227b2ac9b38f2635f5d35e3f03687d6a37274bfa" }
 
 eframe = "0.24.1"
 egui_plot = "0.24.1"
