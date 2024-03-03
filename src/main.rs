@@ -43,7 +43,6 @@ impl App {
         Self {
             help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
-            //comms: Comms::new("0.0.0.0:8733"),
             logging: Logging::default(),
             graphing: graph::Manager::default(),
             comms: Comms::new("0.0.0.0:8733", cc.egui_ctx.clone()),
