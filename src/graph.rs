@@ -9,35 +9,43 @@ pub struct Manager {
 }
 
 impl Manager {
-    fn add_point(&mut self, name: String, point_name: &str, point: [f64; 2]) {
-        self.graphs
-            .entry(name.clone())
-            .or_insert(Graph::new(name))
-            .add_point(point_name, point);
+    fn add_point(&mut self, plot_name: &str, subplot_name: &str, point: [f64; 2]) {
+        match self.graphs.get_mut(plot_name) {
+            Some(graph) => graph.add_point(subplot_name, point),
+            None => {
+                self.graphs
+                    .insert(plot_name.to_owned(), Graph::new(plot_name.to_owned()));
+            }
+        }
     }
-    pub fn add_buffers(&mut self, buffers: Vec<(String, communication::plot::Buffer)>) {
-        for (buffer_name, buffer) in buffers {
+    pub fn add_buffers(&mut self, buffers: Vec<((String, String), communication::plot::Buffer)>) {
+        for ((plot_name, subplot_name), buffer) in buffers {
+            let subplot_names = if subplot_name == plot_name {
+                ["x".into(), "y".into(), "z".into()]
+            } else {
+                [
+                    format!("{subplot_name} (x)"),
+                    format!("{subplot_name} (y)"),
+                    format!("{subplot_name} (z)"),
+                ]
+            };
             match buffer {
                 plot::Buffer::Scalar(v) => {
                     for (time, scalar) in v {
-                        self.add_point(
-                            buffer_name.clone(),
-                            &buffer_name,
-                            [time.as_secs_f64(), scalar],
-                        );
+                        self.add_point(&plot_name, &subplot_name, [time.as_secs_f64(), scalar]);
                     }
                 }
                 plot::Buffer::Vec2(v) => {
                     for (time, [x, y]) in v {
-                        self.add_point(format!("{buffer_name}"), "x", [time.as_secs_f64(), x]);
-                        self.add_point(format!("{buffer_name}"), "y", [time.as_secs_f64(), y]);
+                        self.add_point(&plot_name, &subplot_names[0], [time.as_secs_f64(), x]);
+                        self.add_point(&plot_name, &subplot_names[1], [time.as_secs_f64(), y]);
                     }
                 }
                 plot::Buffer::Vec3(v) => {
                     for (time, [x, y, z]) in v {
-                        self.add_point(format!("{buffer_name}"), "x", [time.as_secs_f64(), x]);
-                        self.add_point(format!("{buffer_name}"), "y", [time.as_secs_f64(), y]);
-                        self.add_point(format!("{buffer_name}"), "z", [time.as_secs_f64(), z]);
+                        self.add_point(&plot_name, &subplot_names[0], [time.as_secs_f64(), x]);
+                        self.add_point(&plot_name, &subplot_names[1], [time.as_secs_f64(), y]);
+                        self.add_point(&plot_name, &subplot_names[2], [time.as_secs_f64(), z]);
                     }
                 }
             }
@@ -62,7 +70,7 @@ impl Manager {
 pub struct Graph {
     enabled: bool,
     name: String,
-    points: HashMap<String, Vec<[f64; 2]>>,
+    subplots: HashMap<String, Vec<[f64; 2]>>,
 }
 
 impl Graph {
@@ -70,11 +78,11 @@ impl Graph {
         Self {
             enabled: false,
             name,
-            points: HashMap::new(),
+            subplots: HashMap::new(),
         }
     }
-    pub fn add_point(&mut self, point_name: &str, point: [f64; 2]) {
-        match self.points.get_mut(point_name) {
+    pub fn add_point(&mut self, subplot_name: &str, point: [f64; 2]) {
+        match self.subplots.get_mut(subplot_name) {
             Some(vec) => {
                 assert!(!vec.is_empty());
                 if let Some(last) = vec.last() {
@@ -82,8 +90,8 @@ impl Graph {
                         // clear graph is robot is restarted (point is earlier in time then last point)
                         log::warn!("Detected point with time before last point. Robot has probably been restarted: resetting plot.");
                         return {
-                            self.points.clear();
-                            self.add_point(point_name, point);
+                            self.subplots.clear();
+                            self.add_point(subplot_name, point);
                         };
                     } else if point[0] - last[0] > 0.1 {
                         log::warn!("Detected time skip ({:.1}s to {:.1}s)", last[0], point[0]);
@@ -92,7 +100,7 @@ impl Graph {
                 }
             }
             None => {
-                self.points.insert(point_name.to_owned(), vec![point]);
+                self.subplots.insert(subplot_name.to_owned(), vec![point]);
             }
         }
     }
@@ -103,10 +111,10 @@ impl Graph {
             .open(&mut self.enabled)
             .show(ctx, |ui| {
                 let mut lines = Vec::new();
-                let mut legend = self.points.len() != 1;
-                for (name, points) in self.points.iter() {
+                let mut legend = self.subplots.len() != 1;
+                for (name, subplot_points) in &self.subplots {
                     legend |= !name.is_empty();
-                    lines.push(egui_plot::Line::new(points.clone()).name(name));
+                    lines.push(egui_plot::Line::new(subplot_points.clone()).name(name));
                 }
                 let mut plot = egui_plot::Plot::new(self.name.clone()).view_aspect(2.0);
                 if legend {
