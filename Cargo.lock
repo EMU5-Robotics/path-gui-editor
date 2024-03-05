@@ -691,7 +691,7 @@ dependencies = [
 [[package]]
 name = "communication"
 version = "0.1.0"
-source = "git+ssh://git@github.com/EMU5-Robotics/communication.git?rev=32027e9ad82d1377930cc7615b314695750416a0#32027e9ad82d1377930cc7615b314695750416a0"
+source = "git+ssh://git@github.com/EMU5-Robotics/communication.git?rev=db0a2ac922219ae8fce52c88fd9527121b5d66b6#db0a2ac922219ae8fce52c88fd9527121b5d66b6"
 dependencies = [
  "bincode",
  "crossbeam-channel",

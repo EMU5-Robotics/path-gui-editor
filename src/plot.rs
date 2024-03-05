@@ -1,4 +1,5 @@
 use crate::{
+    robot::Robot,
     robot_state::{ActionBuilderWindow, RobotState},
     tools::Tools,
     vec::Vec2,
@@ -12,6 +13,7 @@ pub struct Plot {
     pub actions: RobotState,
     pub action_builder_window: ActionBuilderWindow,
     tools: Tools,
+    robots: [Option<Robot>; 2],
 }
 
 impl Plot {
@@ -28,6 +30,7 @@ impl Plot {
             ]),
             action_builder_window: ActionBuilderWindow::new(),
             tools: Tools::default(),
+            robots: [None, None],
         }
     }
     fn load_field_image(ctx: &Context) -> TextureHandle {
@@ -62,6 +65,11 @@ impl Plot {
                 self.actions.render(plot_ui);
 
                 self.tools.draw(plot_ui);
+
+                self.robots
+                    .iter()
+                    .filter_map(|v| v.as_ref())
+                    .for_each(|robot| robot.draw(plot_ui));
             });
 
             self.tools.draw_defered(ui, &plot_resp);
@@ -80,5 +88,12 @@ impl Plot {
         let plotpoints = PlotPoints::new(points.iter().map(|v| v.0).collect());
         let points = Line::new(plotpoints).color(color).width(2.);
         ui.line(points);
+    }
+    pub fn odom_update(&mut self, first: bool, pos: [f64; 2], heading: f64) {
+        if first {
+            self.robots[0] = Some(Robot::new(first, pos, heading));
+        } else {
+            self.robots[1] = Some(Robot::new(first, pos, heading));
+        }
     }
 }

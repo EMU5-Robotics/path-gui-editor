@@ -1,4 +1,4 @@
-use communication::path::Action;
+use communication::{path::Action, ToClient};
 use eframe::egui;
 use egui::Context;
 
@@ -7,6 +7,7 @@ mod graph;
 mod help;
 mod logging;
 mod plot;
+mod robot;
 mod robot_state;
 mod tools;
 mod vec;
@@ -160,8 +161,12 @@ impl eframe::App for App {
         let mut point_buffers = Vec::new();
         for pkt in pkts {
             match pkt {
-                communication::ToClient::Log(l) => logs.push(l),
-                communication::ToClient::PointBuffer(p) => point_buffers.push(p),
+                ToClient::Log(l) => logs.push(l),
+                ToClient::PointBuffer(p) => point_buffers.push(p),
+                ToClient::Odometry((first, pos, heading)) => {
+                    self.plot.odom_update(first, pos, heading);
+                }
+
                 _ => {}
             }
         }
