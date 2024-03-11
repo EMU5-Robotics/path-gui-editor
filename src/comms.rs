@@ -1,15 +1,17 @@
-use communication::{client::Client, ToClient};
+use communication::{client::Client, packet::ToRobot, ToClient};
 use eframe::egui::Context;
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Receiver, Sender};
 
 // currently only supports receiving data
 pub struct Comms {
     recv: Receiver<ToClient>,
+    send: Sender<ToRobot>,
 }
 
 impl Comms {
     pub fn new(addr: &str, ctx: Context) -> Self {
-        let (send, recv) = mpsc::channel();
+        let (send_main, recv_from_thread) = mpsc::channel();
+        let (send_thread, recv_from_main) = mpsc::channel();
 
         let addr = addr.to_owned();
         std::thread::spawn(move || {
@@ -44,8 +46,14 @@ impl Comms {
                 };
                 let l = data.len();
                 for d in data {
-                    send.send(d).unwrap();
+                    send_main.send(d).unwrap();
                 }
+                if let Ok(pkt) = recv_from_main.try_recv() {
+                    if let Err(e) = client.send_request(&pkt) {
+                        log::warn!("Failed to send packet {pkt:?} to robot with {e}");
+                    }
+                }
+
                 // until we get a smarter way to do this
                 if l != 0 {
                     ctx.request_repaint();
@@ -53,7 +61,10 @@ impl Comms {
                 std::thread::yield_now();
             }
         });
-        Self { recv }
+        Self {
+            recv: recv_from_thread,
+            send: send_thread,
+        }
     }
     pub fn get_packets(&self) -> Vec<ToClient> {
         let mut pkts = Vec::new();
@@ -61,5 +72,10 @@ impl Comms {
             pkts.push(v);
         }
         pkts
+    }
+    pub fn send_packet(&self, pkt: ToRobot) {
+        if let Err(e) = self.send.send(pkt) {
+            log::error!("Failed to send pkt to client thread with {e}");
+        }
     }
 }

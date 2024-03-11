@@ -1,4 +1,4 @@
-use communication::{path::Action, ToClient};
+use communication::{packet::ToRobot, path::Action, ToClient};
 use eframe::egui;
 use egui::Context;
 
@@ -6,6 +6,7 @@ mod comms;
 mod graph;
 mod help;
 mod logging;
+mod pid;
 mod plot;
 mod robot;
 mod robot_state;
@@ -15,6 +16,7 @@ mod vec;
 use comms::Comms;
 use help::Help;
 use logging::Logging;
+use pid::Pid;
 use plot::Plot;
 use robot_state::ActionGuiReq;
 use tools::{PointSelection, Tools};
@@ -33,10 +35,10 @@ fn main() {
 struct App {
     plot: Plot,
     help: Help,
-    //comms: Comms,
     logging: Logging,
     graphing: graph::Manager,
     comms: Comms,
+    pid: Pid,
 }
 
 impl App {
@@ -47,6 +49,7 @@ impl App {
             logging: Logging::default(),
             graphing: graph::Manager::default(),
             comms: Comms::new("192.168.222.58:8733", cc.egui_ctx.clone()),
+            pid: Pid::default(),
         }
     }
 
@@ -78,6 +81,9 @@ impl App {
                     ui.menu_button("Communication", |ui| {
                         if ui.button("logs").clicked() {
                             self.logging.window = true;
+                        }
+                        if ui.button("pid").clicked() {
+                            self.pid.window = true;
                         }
                     });
                     ui.menu_button("Graphs", |ui| {
@@ -169,6 +175,10 @@ impl eframe::App for App {
 
                 _ => {}
             }
+        }
+
+        if let Some(val) = self.pid.draw(ctx) {
+            self.comms.send_packet(ToRobot::Pid(val));
         }
 
         // draw logs
