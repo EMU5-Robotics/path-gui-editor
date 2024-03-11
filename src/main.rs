@@ -46,7 +46,7 @@ impl App {
             plot: Plot::new(&cc.egui_ctx),
             logging: Logging::default(),
             graphing: graph::Manager::default(),
-            comms: Comms::new("0.0.0.0:8733", cc.egui_ctx.clone()),
+            comms: Comms::new("192.168.222.58:8733", cc.egui_ctx.clone()),
         }
     }
 
