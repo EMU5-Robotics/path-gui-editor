@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     robot::Robot,
     //robot_state::{ActionBuilderWindow, RobotState},
@@ -6,14 +8,14 @@ use crate::{
 };
 //use communication::path::Action;
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
-use egui_plot::{Line, PlotPoints, PlotUi, Points};
+use egui_plot::{Line, PlotPoints, PlotUi, Points, Polygon};
 
 pub struct Plot {
     img: TextureHandle,
     //pub actions: RobotState,
     //pub action_builder_window: ActionBuilderWindow,
     tools: Tools,
-    robots: [Option<Robot>; 2],
+    robots: HashMap<String, ([f64; 2], [f64; 2], f64)>,
 }
 
 impl Plot {
@@ -30,7 +32,7 @@ impl Plot {
             ]),
             action_builder_window: ActionBuilderWindow::new(),*/
             tools: Tools::default(),
-            robots: [None, None],
+            robots: HashMap::new(),
         }
     }
     fn load_field_image(ctx: &Context) -> TextureHandle {
@@ -62,14 +64,42 @@ impl Plot {
         egui::CentralPanel::default().show(ctx, |ui| {
             let plot_resp = plot.show(ui, |plot_ui| {
                 plot_ui.image(img);
-                //self.actions.render(plot_ui);
 
                 self.tools.draw(plot_ui);
 
-                self.robots
-                    .iter()
-                    .filter_map(|v| v.as_ref())
-                    .for_each(|robot| robot.draw(plot_ui));
+                for (robot_name, ([width, height], pos, heading)) in self.robots.iter() {
+                    // draw name at robot pos
+                    plot_ui.text(
+                        egui_plot::Text::new((*pos).into(), robot_name).color(egui::Color32::GOLD),
+                    );
+                    let hwidth = 0.5 * width;
+                    let hheight = 0.5 * height;
+                    let mut points = [
+                        [-hwidth, -hheight],
+                        [-hwidth, hheight],
+                        [hwidth, hheight],
+                        [hwidth, -hheight],
+                        [-0.5 * hwidth, 1.1 * hheight],
+                        [0.0, 1.2 * hheight],
+                        [0.5 * hwidth, 1.1 * hheight],
+                    ];
+
+                    let (s, c) = heading.sin_cos();
+
+                    for point in points.iter_mut() {
+                        // rotate points
+                        *point = [
+                            point[0] * c - point[1] * s + pos[0],
+                            point[0] * s + point[1] * c + pos[1],
+                        ];
+                    }
+
+                    let rect = Polygon::new(points[..4].to_vec()).color(egui::Color32::GREEN);
+                    let arrow = Line::new(points[4..].to_vec()).color(egui::Color32::GREEN);
+
+                    plot_ui.polygon(rect);
+                    plot_ui.line(arrow)
+                }
             });
 
             self.tools.draw_defered(ui, &plot_resp);
@@ -89,11 +119,7 @@ impl Plot {
         let points = Line::new(plotpoints).color(color).width(2.);
         ui.line(points);
     }
-    pub fn odom_update(&mut self, first: bool, pos: [f64; 2], heading: f64) {
-        if first {
-            self.robots[0] = Some(Robot::new(first, pos, heading));
-        } else {
-            self.robots[1] = Some(Robot::new(first, pos, heading));
-        }
+    pub fn set_odom(&mut self, name: String, dim: [f64; 2], pos: [f64; 2], heading: f64) {
+        let _ = self.robots.insert(name, (dim, pos, heading));
     }
 }

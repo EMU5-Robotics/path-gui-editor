@@ -725,7 +725,7 @@ dependencies = [
 [[package]]
 name = "communication"
 version = "0.1.0"
-source = "git+ssh://git@github.com/EMU5-Robotics/communication.git?rev=736e0a1cc1ae38beef5e696aa20a34d7b1a673be#736e0a1cc1ae38beef5e696aa20a34d7b1a673be"
+source = "git+ssh://git@github.com/EMU5-Robotics/communication.git?rev=99af0dc0798adfeeaa672f7fd0fdecd811f58c73#99af0dc0798adfeeaa672f7fd0fdecd811f58c73"
 dependencies = [
  "async-channel",
  "async-executor",

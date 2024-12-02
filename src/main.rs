@@ -43,6 +43,7 @@ impl App {
             "127.0.0.1:8733".parse().unwrap(),
             ClientInfo::new(format!("{}", gethostname::gethostname().to_string_lossy())),
         );
+        cc.egui_ctx.set_pixels_per_point(1.5);
         Self {
             help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
@@ -103,50 +104,6 @@ impl App {
                 });
             });
     }
-
-    fn draw_panel(&mut self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
-        let create_row = |ui: &mut egui::Ui, act: &()| {
-            /* ui.label(act.name());
-            ui.label(act.value());
-            ui.label(act.modifiers());
-            ui.end_row();*/
-        };
-
-        let mut table = |ui: &mut _| {
-            egui::Grid::new("actions")
-                .striped(true)
-                .num_columns(4)
-                .show(ui, |ui| {
-                    ui.heading("Action");
-                    ui.heading("Action Data");
-                    ui.heading("Action Type");
-                    // ensure button in on the right hand side
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-                        if ui.button("Add Action").clicked() {
-                            //self.plot.action_builder_window.open();
-                        }
-                        if ui.button("Remove Action").clicked() {
-                            //self.plot.actions.remove_last();
-                        }
-                    });
-                    ui.end_row();
-                });
-        };
-
-        if max_axis == 0 {
-            egui::SidePanel::left("actions")
-                .exact_width(min_len)
-                .show(ctx, |ui| {
-                    table(ui);
-                });
-        } else {
-            egui::TopBottomPanel::bottom("actions")
-                .exact_height(min_len)
-                .show(ctx, |ui| {
-                    table(ui);
-                });
-        }
-    }
 }
 
 impl eframe::App for App {
@@ -154,7 +111,7 @@ impl eframe::App for App {
         // draw help
         self.help.draw(ctx);
 
-        let pkts = self.listener.get_packets(); //comms.get_packets();
+        let pkts = self.listener.get_packets();
 
         let mut logs = Vec::new();
         let mut point_buffers = Vec::new();
@@ -163,6 +120,9 @@ impl eframe::App for App {
                 ToClient::Log(l) => logs.push(l),
                 ToClient::PointBuffer(plt_name, subplt_name, buffer) => {
                     point_buffers.push((plt_name, subplt_name, buffer));
+                }
+                ToClient::Odometry(name, dim, pos, rot) => {
+                    self.plot.set_odom(name, dim, pos, rot);
                 }
                 _ => {}
             }
@@ -193,9 +153,6 @@ impl eframe::App for App {
         } else {
             (1, win_size.y - win_size.x)
         };
-
-        // draw panel which has the table of robot actions on it
-        //self.draw_panel(ctx, (max_axis, panel_size));
 
         // draw plot with the field and path and tools on it
         self.plot.draw(ctx);
