@@ -1,4 +1,4 @@
-use communication::plot;
+//use communication::plot;
 use eframe::egui;
 use egui::{containers::Window, Context, Ui};
 use std::collections::HashMap;
@@ -18,8 +18,8 @@ impl Manager {
             }
         }
     }
-    pub fn add_buffers(&mut self, buffers: Vec<((String, String), communication::plot::Buffer)>) {
-        for ((plot_name, subplot_name), buffer) in buffers {
+    pub fn add_buffers(&mut self, buffers: Vec<(String, String, communication::Buffer)>) {
+        for (plot_name, subplot_name, buffer) in buffers {
             let subplot_names = if subplot_name == plot_name {
                 ["x".into(), "y".into(), "z".into()]
             } else {
@@ -30,18 +30,18 @@ impl Manager {
                 ]
             };
             match buffer {
-                plot::Buffer::Scalar(v) => {
+                communication::Buffer::Scalar(v) => {
                     for (time, scalar) in v {
                         self.add_point(&plot_name, &subplot_name, [time.as_secs_f64(), scalar]);
                     }
                 }
-                plot::Buffer::Vec2(v) => {
+                communication::Buffer::Vec2(v) => {
                     for (time, [x, y]) in v {
                         self.add_point(&plot_name, &subplot_names[0], [time.as_secs_f64(), x]);
                         self.add_point(&plot_name, &subplot_names[1], [time.as_secs_f64(), y]);
                     }
                 }
-                plot::Buffer::Vec3(v) => {
+                communication::Buffer::Vec3(v) => {
                     for (time, [x, y, z]) in v {
                         self.add_point(&plot_name, &subplot_names[0], [time.as_secs_f64(), x]);
                         self.add_point(&plot_name, &subplot_names[1], [time.as_secs_f64(), y]);

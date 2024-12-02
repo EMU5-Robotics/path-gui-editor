@@ -1,5 +1,5 @@
 use crate::egui::Label;
-use communication::SimpleLog;
+use communication::packets::Log;
 use eframe::egui;
 use egui::{containers::Window, Context};
 use std::time::SystemTime;
@@ -7,15 +7,15 @@ use std::time::SystemTime;
 #[derive(Debug, Default)]
 pub struct Logging {
     pub window: bool,
-    logs: Vec<SimpleLog>,
+    logs: Vec<Log>,
 }
 
 impl Logging {
-    pub fn add_logs(&mut self, logs: Vec<SimpleLog>) {
+    pub fn add_logs(&mut self, logs: Vec<Log>) {
         self.logs.extend(logs);
     }
     pub fn draw(&mut self, ctx: &Context) {
-        let create_row = |ui: &mut egui::Ui, log: &SimpleLog| {
+        let create_row = |ui: &mut egui::Ui, log: &Log| {
             ui.add(Label::new(log.level.to_string()).wrap(true));
             ui.add(Label::new(log.msg.clone()).wrap(true));
             ui.add(Label::new(Self::format_timestamp(log.timestamp)).wrap(true));

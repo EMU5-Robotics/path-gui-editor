@@ -1,17 +1,17 @@
 use crate::{
     robot::Robot,
-    robot_state::{ActionBuilderWindow, RobotState},
+    //robot_state::{ActionBuilderWindow, RobotState},
     tools::Tools,
     vec::Vec2,
 };
-use communication::path::Action;
+//use communication::path::Action;
 use eframe::egui::{self, Context, Rgba, TextureHandle, TextureOptions};
 use egui_plot::{Line, PlotPoints, PlotUi, Points};
 
 pub struct Plot {
     img: TextureHandle,
-    pub actions: RobotState,
-    pub action_builder_window: ActionBuilderWindow,
+    //pub actions: RobotState,
+    //pub action_builder_window: ActionBuilderWindow,
     tools: Tools,
     robots: [Option<Robot>; 2],
 }
@@ -20,7 +20,7 @@ impl Plot {
     pub fn new(ctx: &Context) -> Self {
         Self {
             img: Self::load_field_image(ctx),
-            actions: RobotState::from(vec![
+            /*actions: RobotState::from(vec![
                 Action::StartAt {
                     pos: Vec2([0.0, -1.7]).0,
                     heading: 0.,
@@ -28,14 +28,14 @@ impl Plot {
                 Action::MoveRelAbs { rel: 0.2 },
                 Action::MoveRel { rel: 1. },
             ]),
-            action_builder_window: ActionBuilderWindow::new(),
+            action_builder_window: ActionBuilderWindow::new(),*/
             tools: Tools::default(),
             robots: [None, None],
         }
     }
     fn load_field_image(ctx: &Context) -> TextureHandle {
         // load ColorImage according to https://docs.rs/epaint/0.24.1/epaint/image/struct.ColorImage.html
-        let data = image::io::Reader::open("res/field.jpg")
+        let data = image::io::Reader::open("res/field.png")
             .unwrap()
             .decode()
             .unwrap();
@@ -62,7 +62,7 @@ impl Plot {
         egui::CentralPanel::default().show(ctx, |ui| {
             let plot_resp = plot.show(ui, |plot_ui| {
                 plot_ui.image(img);
-                self.actions.render(plot_ui);
+                //self.actions.render(plot_ui);
 
                 self.tools.draw(plot_ui);
 

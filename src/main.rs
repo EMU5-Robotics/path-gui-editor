@@ -1,24 +1,20 @@
-use communication::{packet::ToRobot, path::Action, ToClient};
+use communication::{packets::*, ClientListener};
 use eframe::egui;
 use egui::Context;
 
-mod comms;
 mod graph;
 mod help;
 mod logging;
 mod pid;
 mod plot;
 mod robot;
-mod robot_state;
 mod tools;
 mod vec;
 
-use comms::Comms;
 use help::Help;
 use logging::Logging;
 use pid::Pid;
 use plot::Plot;
-use robot_state::ActionGuiReq;
 use tools::{PointSelection, Tools};
 
 fn main() {
@@ -37,18 +33,22 @@ struct App {
     help: Help,
     logging: Logging,
     graphing: graph::Manager,
-    comms: Comms,
+    listener: ClientListener,
     pid: Pid,
 }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let listener = ClientListener::new(
+            "127.0.0.1:8733".parse().unwrap(),
+            ClientInfo::new(format!("{}", gethostname::gethostname().to_string_lossy())),
+        );
         Self {
             help: Help::default(),
             plot: Plot::new(&cc.egui_ctx),
             logging: Logging::default(),
             graphing: graph::Manager::default(),
-            comms: Comms::new("192.168.222.58:8733", cc.egui_ctx.clone()),
+            listener,
             pid: Pid::default(),
         }
     }
@@ -105,11 +105,11 @@ impl App {
     }
 
     fn draw_panel(&mut self, ctx: &Context, (max_axis, min_len): (usize, f32)) {
-        let create_row = |ui: &mut egui::Ui, act: &Action| {
-            ui.label(act.name());
+        let create_row = |ui: &mut egui::Ui, act: &()| {
+            /* ui.label(act.name());
             ui.label(act.value());
             ui.label(act.modifiers());
-            ui.end_row();
+            ui.end_row();*/
         };
 
         let mut table = |ui: &mut _| {
@@ -123,16 +123,13 @@ impl App {
                     // ensure button in on the right hand side
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
                         if ui.button("Add Action").clicked() {
-                            self.plot.action_builder_window.open();
+                            //self.plot.action_builder_window.open();
                         }
                         if ui.button("Remove Action").clicked() {
-                            self.plot.actions.remove_last();
+                            //self.plot.actions.remove_last();
                         }
                     });
                     ui.end_row();
-                    for action in self.plot.actions.actions() {
-                        create_row(ui, action);
-                    }
                 });
         };
 
@@ -154,31 +151,25 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
-        self.plot
-            .action_builder_window
-            .draw(ctx, &mut self.plot.actions);
-
         // draw help
         self.help.draw(ctx);
 
-        let pkts = self.comms.get_packets();
+        let pkts = self.listener.get_packets(); //comms.get_packets();
 
         let mut logs = Vec::new();
         let mut point_buffers = Vec::new();
         for pkt in pkts {
             match pkt {
                 ToClient::Log(l) => logs.push(l),
-                ToClient::PointBuffer(p) => point_buffers.push(p),
-                ToClient::Odometry((first, pos, heading)) => {
-                    self.plot.odom_update(first, pos, heading);
+                ToClient::PointBuffer(plt_name, subplt_name, buffer) => {
+                    point_buffers.push((plt_name, subplt_name, buffer));
                 }
-
                 _ => {}
             }
         }
 
         if let Some(val) = self.pid.draw(ctx) {
-            self.comms.send_packet(ToRobot::Pid(val));
+            //self.comms.send_packet(ToRobot::Pid(val));
         }
 
         // draw logs
@@ -204,7 +195,7 @@ impl eframe::App for App {
         };
 
         // draw panel which has the table of robot actions on it
-        self.draw_panel(ctx, (max_axis, panel_size));
+        //self.draw_panel(ctx, (max_axis, panel_size));
 
         // draw plot with the field and path and tools on it
         self.plot.draw(ctx);
